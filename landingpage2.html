@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f4f4;
+        }
+        .header img {
+            height: 150px;
+            width: 100%;
+            display: block;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: right;
+            height: 100vh;
+            padding: 50px;
+            background-image: url('img/FP9.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: left;
+        }
+        .text-content {
+            align-content: center;
+            width: 500px;
+            background: rgba(15, 26, 3, 7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .text-content img {
+            display: block;
+            border: white 2px solid; 
+            margin: 0 auto; 
+            border-radius: 50%;
+            height: 150px;
+            width: 150px;
+        }
+
+        .text-content h2 {
+            font-size: 2em;
+            color: #fff;
+        }
+        .text-content p {
+            font-size: 1em;
+            color: #ddd;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 20px;
+                height: auto;
+                min-height: 100vh;
+            }
+            .text-content {
+                max-width: 90%;
+                padding: 15px;
+            }
+            .text-content h2 {
+                font-size: 1.8em;
+            }
+            .text-content p {
+                font-size: 0.9em;
+            }
+            .btn {
+                font-size: 1em;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="header">
+        <img src="img/deli.jpg" alt="Header Image">
+    </section>
+    <div class="container">
+        <div class="text-content">
+            <img src="img\fp.jpg" class="icon">
+            <h2>So deliciously easy.</h2>
+            <p>No more groceries, cooking, or takeout. Let us fill your fridge with super healthy, gourmet meals—for less than the cost of eating out.</p>
+            <a href="loginform.php" class="btn">Get Started Now</a>
+        </div>
+    </div>
+</body>
+</html>
