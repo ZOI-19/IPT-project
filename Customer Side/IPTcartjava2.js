@@ -58,9 +58,11 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(error => console.error("Error loading JSON:", error));
 
-    function displayProducts(productList) {
-        const productContainer = document.querySelector(".listProduct");
-        productContainer.innerHTML = "";
+        function displayProducts(productList) {
+            const productContainer = document.querySelector(".listProduct");
+            if (!productContainer) return; // 🚫 stop if not on Shoppage2.php
+        
+            productContainer.innerHTML = "";
 
         productList.forEach(product => {
             const productHTML = `
@@ -214,6 +216,26 @@ document.addEventListener("DOMContentLoaded", () => {
             addCartToMemory();  // Update the localStorage
         }
     };
+// [Only showing necessary changes - rest of your code stays intact]
+
+function displayProducts(productList) {
+    const productContainer = document.querySelector(".listProduct");
+    if (!productContainer) return;  // ✅ avoid error on ORDERS.php
+
+    productContainer.innerHTML = "";
+
+    productList.forEach(product => {
+        const productHTML = `
+            <div class="item">
+                <img src="${product.image}" alt="${product.name}">
+                <h2>${product.name}</h2>
+                <div class="price">$${product.price}</div>
+                <button class="addcart">Add To Cart</button>
+            </div>
+        `;
+        productContainer.innerHTML += productHTML;
+    });
+}
 
     if (checkoutButton) {
         checkoutButton.addEventListener("click", function () {
@@ -245,42 +267,50 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Select the Checkout button
     const checkoutBtn = document.querySelector(".CheckOut");
 
-    // Ensure the button exists before adding the event listener
     if (checkoutBtn) {
         checkoutBtn.addEventListener("click", function () {
-            // Get the cart items
             const cartItems = document.querySelectorAll(".listCart .item");
 
-            // Check if cart is empty
             if (cartItems.length === 0) {
                 alert("Your cart is empty! Add items before checkout.");
                 return;
             }
 
-            // Collect order details
             let orderDetails = [];
             cartItems.forEach(item => {
                 const name = item.querySelector(".name").textContent.trim();
-                const price = item.querySelector(".totalPrice").textContent.trim();
+                const price = item.querySelector(".totalPrice").textContent.trim().replace('$', '');
                 const quantity = item.querySelector(".quantity span:nth-child(2)").textContent.trim();
 
                 orderDetails.push({ name, price, quantity });
             });
 
-            // Convert to JSON (for potential backend use)
-            const orderData = JSON.stringify(orderDetails);
+            // Send orderDetails to backend (checkout.php)
+            fetch('checkout.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: orderDetails })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Order placed successfully!");
 
-            // Simulate Checkout Process (You can replace this with an actual backend request)
-            alert("Order placed successfully!\n\n" + orderData);
-
-            // Clear cart after checkout
-            document.querySelector(".listCart").innerHTML = "";
-            document.querySelector(".icon-cart span").textContent = "0";
+                    // Clear cart after successful checkout
+                    localStorage.removeItem('cart');
+                    document.querySelector(".listCart").innerHTML = "";
+                    document.querySelector(".icon-cart span").textContent = "0";
+                } else {
+                    alert("Checkout failed: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Checkout error:", error);
+                alert("Checkout error. Please try again.");
+            });
         });
-    } else {
-        console.error("Checkout button not found!");
     }
 });
+

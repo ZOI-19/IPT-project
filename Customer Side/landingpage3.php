@@ -1,10 +1,16 @@
 <?php
+session_start();
+
+// Include your database connection (edit the filename if different)
+include("IPTconnect.php");
+
+// Check if user is logged in
 function check_login($conn) {
     if (isset($_SESSION['user_id'])) {
-        $id = $_SESSION['user_id'];
+        $id = mysqli_real_escape_string($conn, $_SESSION['user_id']);
         $query = "SELECT * FROM users WHERE id = '$id' LIMIT 1";
-
         $result = mysqli_query($conn, $query);
+
         if ($result && mysqli_num_rows($result) > 0) {
             return mysqli_fetch_assoc($result);
         }
@@ -14,6 +20,9 @@ function check_login($conn) {
     header("Location: loginform.php");
     exit();
 }
+
+// Optional: uncomment this if you want to restrict this page to logged-in users
+// $user_data = check_login($conn);
 ?>
 
 <!DOCTYPE html>
@@ -135,7 +144,7 @@ function check_login($conn) {
         }
 
         .left-content {
-
+            flex: 1; 
             display: flex;
             flex-direction: column;
             justify-content: center; 
@@ -145,7 +154,16 @@ function check_login($conn) {
             padding: 20px;
             border-radius: 25px;
             border: 2px solid black;
-            text-align: center; /
+            text-align: center;
+        }
+
+        .text-content {
+            flex: 1; 
+            background: rgba(15, 26, 3, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transform: translateY(-20px);
         }
 
         .gallery {
@@ -231,36 +249,43 @@ function check_login($conn) {
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
+                align-items: center;
+                justify-content: center;
                 text-align: center;
                 padding: 20px;
                 height: auto;
                 min-height: 100vh;
             }
-            .left-content {
-                align-items: center;
-            }
-            .gallery {
-                width: 90%;
-                height: 300px;
-            }
-            .description {
-                max-width: 90%;
-                font-size: 1em;
-                transform: none;
-            }
+
+            .left-content,
             .text-content {
                 max-width: 90%;
-                padding: 15px;
-                transform: none;
+                width: 100%;
+                margin-bottom: 20px;
+                align-items: center;
             }
+
+            .gallery {
+                width: 100%;
+                height: 300px;
+            }
+
+            .description {
+                max-width: 100%;
+                font-size: 1em;
+                text-align: justify;
+            }
+
             .text-content h2 {
                 font-size: 1.8em;
             }
+
             .btn {
                 font-size: 1em;
                 padding: 8px 16px;
             }
         }
+
     </style>
 </head>
 <body>
@@ -271,7 +296,7 @@ function check_login($conn) {
         <img src="img/SSD.jfif" alt="Icon" class="Icon1">
         <nav>
             <ul>
-                <li><a href="contact.php">Sign In</a></li>
+                <li><a href="loginform.php">Sign In</a></li>
             </ul>
         </nav>
 

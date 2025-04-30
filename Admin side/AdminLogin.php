@@ -1,7 +1,12 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+?>
+<?php
 session_start();
 include 'IPTconnect.php'; // Connect to DB
 
+// Check if the form has been submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = $_POST['password'];
@@ -18,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['fname'] = $user['fname'];
 
-            header("Location: Shoppage.php");
+            header("Location: Dashboard.php");
             exit();
         } else {
             echo "<script>alert('Incorrect password.'); window.location='loginform.php';</script>";
@@ -27,10 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<script>alert('User not found. Please register first.'); window.location='signupform.php';</script>";
     }
 }
-
-
-
 ?>
+
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -38,14 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Login Page</title>
 
-    <script src="logingoogle.js" defer type="module"></script>
+    <script src="logingoogleadmin.js" defer type="module"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js">
     <link rel="stylesheet"  href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/iconfont/material-icons.min.css">
     <!--  Login Style -->
     <style>
 
     body {
-        background-image: url('img/bakcgroud.jpg');
+        background-image: url('img - Copy/bakcgroud.jpg');
         background-position: center;
         background-repeat: repeat;
         background-attachment: fixed;
@@ -77,6 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .left {
         flex: 1; 
         text-align: center;
+        
     }
 
     .loginimg {
@@ -93,6 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         flex-direction: column;
         justify-content: center;
         padding-left: 30px;
+        border-left: 2px solid;
     }
 
     .right h2 {
@@ -182,12 +187,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="left">
                 <h3>Deli Zeus Kai Food Products</h3>
-                <a href="landingpage.php"><img src="img/SSD.jfif" class="loginimg"></a>
+                <img src="img - Copy/SSD.jfif" class="loginimg">
             </div>
 
             <div class="right">
                 <h2>Login</h2>
-                <form action="loginform.php" method="POST">
+                <form action="AdminLogin.php" method="POST">
                     <div class="input-container">
                         <input type="email" name="email" placeholder="Email" required>
                         <input type="password" name="password" placeholder="Password" required>
@@ -196,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </form>
                 <p class="register">Don't have an account? <a href="signupform.php">Register</a></p>
                 <button class="google" id="google-login-btn" >
-                    <img src="img/Search.png">Login with google
+                    <img src="img - Copy/Search.png">Login with google
                 </button>
 
             </div>

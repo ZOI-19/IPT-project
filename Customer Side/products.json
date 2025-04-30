@@ -1,0 +1,131 @@
+[
+   
+    {
+        "id": 1,
+        "name": "Marshmallow",
+        "price": 1300,
+        "image": "img/BEANS.jpg",
+        "categories": "Sweet"
+    },
+    {
+        "id": 2,                 
+        "name": "Mani",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Salty"
+    },
+    {
+        "id": 3,                 
+        "name": "Chicken",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Salty"
+    },
+    {
+        "id": 4,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 5,                 
+        "name": "Adono Peanuts",
+        "price": 100,
+        "image": "img/ADOBO PEANUTS.jpg",
+        "categories": "Salty"
+    },
+    {
+        "id": 6,                 
+        "name": "Almond Tart",
+        "price": 100,
+        "image": "img/ALMOND TART.jpg",
+        "categories": "Sweet"
+    },
+    {
+        "id": 7,                 
+        "name": "Assorted Nuts",
+        "price": 100,
+        "image": "img/ASSORTED NUTS.jpg",
+        "categories": "Salty"
+    },
+    {
+        "id": 8,                 
+        "name": "Bagnet",
+        "price": 100,
+        "image": "img/BAGNET_.jpg",
+        "categories": "Salty"
+    },
+    {
+        "id": 9,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 10,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 11,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 12,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 13,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 14,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 15,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 16,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 17,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    },
+    {
+        "id": 18,                 
+        "name": "Beans",
+        "price": 100,
+        "image": "img/BEANS.jpg",
+        "categories": "Spicy"
+    }
+
+
+]
