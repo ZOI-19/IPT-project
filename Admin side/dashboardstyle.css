@@ -173,12 +173,9 @@ aside .sidebar {
     height: 90vh;
     position: relative;
     top: 3rem;
-    transition: transform 300ms ease; /* Smooth transition */
-    transform: translateX(-100%); /* Hide sidebar by default */
+
 }
-aside .sidebar.active {
-    transform: translateX(0); /* Show sidebar when active */
-}
+
 aside h3{
     font-weight: 500;
 }

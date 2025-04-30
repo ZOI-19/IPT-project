@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" rel="stylesheet" />
 </head>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
@@ -175,9 +176,49 @@ aside .sidebar .message-count span{
     font-size: 11px;
     border-radius: var(--border-radius-1);
 }
+
+.Categories {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .Categories ul {
+      display: flex;
+      list-style: none;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .Categories ul li {
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .Categories ul li::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -5px;
+      width: 0;
+      height: 3px;
+      background-color: yellow;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .Categories ul li:hover::after {
+      width: 100%;
+    }
+
 </style>
 <body>
-    <div class="left-side">
+<div class="left-side">
     <aside>
             <div class="top">
                 <div class="logo">
@@ -220,6 +261,16 @@ aside .sidebar .message-count span{
                 </a>  
             </div>
         </aside>
+        <main>
+            <nav class="Categories">
+                <Ul>
+                    <li>All Orders</li>
+                    <li>Packing</li>
+                    <li>Dispatch</li>
+                    <li>Complete</li>
+                </Ul>
+            </nav>
+        </main>
     </div>
 </body>
 </html>
