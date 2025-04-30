@@ -263,13 +263,14 @@ aside .sidebar .message-count span{
         </aside>
         <main>
             <nav class="Categories">
-                <Ul>
+                <ul>
                     <li>All Orders</li>
                     <li>Packing</li>
                     <li>Dispatch</li>
                     <li>Complete</li>
-                </Ul>
+                </ul>
             </nav>
+
         </main>
     </div>
 </body>
