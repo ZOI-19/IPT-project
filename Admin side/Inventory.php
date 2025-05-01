@@ -1,3 +1,15 @@
+<?php
+// Include DB connection
+$conn = new mysqli("localhost", "root", "", "iptdelezuskai");
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Fetch all products
+$sql = "SELECT * FROM products ORDER BY id DESC";
+$result = $conn->query($sql);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,7 +79,11 @@ body{
     overflow: hidden;
     color: var(--color-dark);
 }
-
+.page{
+    display: block;
+    height: 130px;
+    width: 100%;
+}
 .container{
     display: grid;
     width: 100%;
@@ -176,9 +192,103 @@ aside .sidebar .message-count span{
     font-size: 11px;
     border-radius: var(--border-radius-1);
 }
+
+.product-management{
+    display: none;
+}
+main h2, .Product h2 {
+    text-align: left;
+    margin: 1.5rem 0 1rem 1.5rem;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+main .Product {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.Product table {
+    width: 100%;
+    max-width: 1200px;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.Product table th,
+.Product table td {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    text-align: left;
+}
+
+.Product table th {
+    background-color: var(--color-light);
+    font-weight: 600;
+}
+
+.Add-Product {
+    margin: 1.5rem;
+    padding: 0.8rem 1.2rem;
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius-2);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* Popup product-management form styling */
+.product-management {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-white);
+    padding: 2rem;
+    border-radius: var(--border-radius-3);
+    box-shadow: var(--box-shadow);
+    z-index: 1000;
+    width: 400px;
+    max-width: 90%;
+}
+
+/* Style the form inputs */
+.product-management form input,
+.product-management form button {
+    display: block;
+    width: 100%;
+    margin: 0.8rem 0;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border-radius: var(--border-radius-1);
+    border: 1px solid #ccc;
+}
+
+/* Close button */
+.product-management .close-form {
+    background-color: var(--color-danger);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    float: right;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    border-radius: var(--border-radius-2);
+}
+
 </style>
 <body>
-    <div class="left-side">
+<section class="header1">
+    <img src="img - Copy\deli.jpg" class="page" alt="Header Image"/>
+</section>
+    <div class="container">
     <aside>
             <div class="top">
                 <div class="logo">
@@ -202,16 +312,16 @@ aside .sidebar .message-count span{
                     <span class="material-symbols-sharp">groups</span>
                     <h3>View Customers</h3>
                 </a>
-                <a href="#">
+                <a href="Inventory.php">
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="#">
+                <a href="Message.php">
                     <span class="material-symbols-sharp">mail</span>
                     <h3>Message</h3>
                     <span class="message-count">26</span>
                 </a>
-                <a href="#">
+                <a href="Settings.php">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
@@ -221,6 +331,93 @@ aside .sidebar .message-count span{
                 </a>  
             </div>
         </aside>
+        <main>
+            <a href="add_product.php"><button class="Add-Product">+ Add Product</button></a>
+            <div class="Product">
+                <h2>Product List</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Image</th>
+                            <th class="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php if ($result->num_rows > 0): ?>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['id']) ?></td>
+                                <td><?= htmlspecialchars($row['name']) ?></td>
+                                <td>₱<?= number_format($row['price'], 2) ?></td>
+                                <td><?= htmlspecialchars($row['category']) ?></td>
+                                <td><?= htmlspecialchars($row['description']) ?></td>
+                                <td>
+                                    <?php if ($row['image']): ?>
+                                        <img src="uploads/<?= htmlspecialchars($row['image']) ?>" alt="Image" width="50">
+                                    <?php else: ?>
+                                        No image
+                                    <?php endif; ?>
+                                </td>
+                                <td class="actions">
+                                    <a href="add_product.php?id=<?= $row['id'] ?>">✏️ Edit</a> |
+                                    <a href="manage_product.php?action=delete&id=<?= $row['id'] ?>" onclick="return confirm('Delete this product?')">🗑️ Delete</a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="7">No products found.</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
+
+<script>
+    const addProductBtn = document.querySelector('.Add-Product');
+    const productForm = document.getElementById('productForm');
+    const closeFormBtn = document.querySelector('.close-form');
+
+    addProductBtn.addEventListener('click', () => {
+        productForm.style.display = 'block';
+    });
+
+    closeFormBtn.addEventListener('click', () => {
+        productForm.style.display = 'none';
+    });
+
+    window.onload = function () {
+        fetch('fetch_products.php')
+            .then(response => response.json())
+            .then(data => {
+                const table = document.getElementById('productTable');
+                table.innerHTML = '';
+
+                data.forEach(product => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>${product.price}</td>
+                        <td>${product.category}</td>
+                        <td>${product.description}</td>
+                        <td><img src="${product.image}" width="50"/></td>
+                        <td>
+                            <button onclick="editProduct(${product.id})">Edit</button>
+                            <button onclick="deleteProduct(${product.id})">Delete</button>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching products:', error));
+    }
+</script>
 </body>
 </html>

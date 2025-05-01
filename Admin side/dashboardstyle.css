@@ -50,15 +50,18 @@ html{
 }
 
 body{
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
     font-family: poppins, sans-serif;
     font-size: 0.88rem;
     background: var(--color-background);
     user-select: none;
-    overflow: hidden;
     color: var(--color-dark);
 }
+body.dark-theme {
+    background-color: #121212;
+    color: white;
+}
+
 
 .container{
     display: grid;
@@ -129,15 +132,26 @@ b{
     color: var(--color-danger);
 }
 .success{
-    color: var(--color-primary);
+    color: var(--color-success);
 }
 .warning{
-    color: var(--color-primary);
+    color: var(--color-warning);
 }
 
 aside{
     height: 100vh;
     background: white;
+    overflow-y: auto;
+}
+
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-thumb {
+  background-color: var(--color-light);
+  border-radius: 10px;
+  display: none;
 }
 
 aside .top{

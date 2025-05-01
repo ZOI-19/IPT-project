@@ -1,3 +1,14 @@
+<<?php
+// Start session
+session_start();
+
+
+include("IPTconnect.php"); 
+include("IPTfunction.php"); 
+
+// Check if user is logged in
+$user_data = check_login($conn);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,10 +75,17 @@ body{
     font-size: 0.88rem;
     background: var(--color-background);
     user-select: none;
-    overflow: hidden;
+
     color: var(--color-dark);
 }
-
+.page {
+      width: 100%;
+      height: 130px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    
+}
 .container{
     display: grid;
     width: 100%;
@@ -84,6 +102,17 @@ a{
 aside{
     height: 100vh;
     background: white;
+    overflow-y: auto;
+}
+
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-thumb {
+  background-color: var(--color-light);
+  border-radius: 10px;
+  display: none;
 }
 
 aside .top{
@@ -178,6 +207,9 @@ aside .sidebar .message-count span{
 }
 </style>
 <body>
+<section class="header1">
+    <img src="img - Copy\deli.jpg" class="page" alt="Header Image"/>
+</section>
     <div class="left-side">
     <aside>
             <div class="top">

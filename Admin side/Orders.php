@@ -1,3 +1,14 @@
+<?php
+// Start session
+session_start();
+
+
+include("IPTconnect.php"); 
+include("IPTfunction.php"); 
+
+// Check if user is logged in
+$user_data = check_login($conn);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,10 +75,17 @@ body{
     font-size: 0.88rem;
     background: var(--color-background);
     user-select: none;
-    overflow: hidden;
+    overflow: visible;
     color: var(--color-dark);
 }
-
+.page {
+      width: 100%;
+      height: 130px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    
+}
 .container{
     display: grid;
     width: 100%;
@@ -84,7 +102,19 @@ a{
 aside{
     height: 100vh;
     background: white;
+    overflow-y: auto;
 }
+
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-thumb {
+  background-color: var(--color-light);
+  border-radius: 10px;
+  display: none;
+}
+
 
 aside .top{
     background: white;
@@ -218,11 +248,14 @@ aside .sidebar .message-count span{
 
 </style>
 <body>
-<div class="left-side">
+<section class="header1">
+    <img src="img - Copy\deli.jpg" class="page" alt="Header Image"/>
+</section>
+<div class="container">
     <aside>
             <div class="top">
                 <div class="logo">
-                    <img src="img - Copy\SSD.jpeg" alt="">
+                    <img src="img - Copy/SSD.jpeg" alt="">
                     <h2 class="danger">Delizeus Kai Food Products</h2>
                 </div>
                 <div class="close" id="close-btn">

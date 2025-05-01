@@ -1,5 +1,13 @@
 <?php
+// Start session
+session_start();
 
+
+include("IPTconnect.php"); 
+include("IPTfunction.php"); 
+
+// Check if user is logged in
+$user_data = check_login($conn);
 ?>
 
 <!DOCTYPE html>
@@ -36,20 +44,20 @@
                     <span class="material-symbols-sharp">receipt_long</span>
                     <h3>Orders</h3>
                 </a>
-                <a href="#" class="active">
+                <a href="ViewCustomers.php" class="active">
                     <span class="material-symbols-sharp">groups</span>
                     <h3>View Customers</h3>
                 </a>
-                <a href="#">
+                <a href="Inventory.php">
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="#">
+                <a href="Message.php">
                     <span class="material-symbols-sharp">mail</span>
                     <h3>Message</h3>
                     <span class="message-count">26</span>
                 </a>
-                <a href="#">
+                <a href="Settings.php">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
@@ -190,7 +198,7 @@
                 <span class="material-symbols-sharp">menu</span>
                 </button>
                 <div class="theme-toggler">
-                    <span class="material-symbols-sharp active">light_mode</span>
+                    <span id="" class="material-symbols-sharp active">light_mode</span>
                     <span class="material-symbols-sharp">dark_mode</span>
                 </div>
                 <div class="profile">
@@ -283,6 +291,35 @@
                 </div>
             </div>
         </div>
-<script src="dashboard.js"></script>
+        <script>
+const sideMenu = document.querySelector("aside");
+const menuBtn = document.querySelector("#menu-btn");
+const closeBtn = document.querySelector("#close-btn");
+const themetoggler = document.querySelector(".theme-toggler");
+
+// Open sidebar
+menuBtn.addEventListener('click', () => {
+    sideMenu.style.display = 'block';
+});
+
+// Close sidebar
+closeBtn.addEventListener('click', () => {
+    sideMenu.style.display = 'none';
+});
+
+// Theme toggle
+const themeToggler = document.querySelector('.theme-toggler');
+const spans = themeToggler.querySelectorAll('.material-symbols-sharp');
+
+themeToggler.addEventListener('click', () => {
+    // Toggle active class
+    spans.forEach(span => span.classList.toggle('active'));
+
+    // Toggle theme on body
+    document.body.classList.toggle('dark-theme');
+});
+
+</script>
+
 </body>
 </html>
