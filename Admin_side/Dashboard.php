@@ -28,7 +28,7 @@ $user_data = check_login($conn);
         <aside>
             <div class="top">
                 <div class="logo">
-                    <img src="img - Copy\SSD.jpeg" alt="">
+                    <img src="image\SSD.jpeg" alt="">
                     <h2 class="danger">Delizeus Kai Food Products</h2>
                 </div>
                 <div class="close" id="close-btn">
@@ -207,7 +207,7 @@ $user_data = check_login($conn);
                         <small class="text">Admin</small>
                     </div>
                     <div class="profile-photo">
-                        <img src="img - Copy\SSD.jfif" >
+                        <img src="image\SSD.jfif" >
                     </div>
                 </div>
             </div>
@@ -217,7 +217,7 @@ $user_data = check_login($conn);
                 <div class="updates">
                     <div class="update">
                         <div class="profile-photo">
-                            <img src="img - Copy\bakcgroud.jpg">
+                            <img src="image\bakcgroud.jpg">
                         </div>
                         <div class="message">
                             <p><b>Mike Tyson</b> received his order of night lion tech gps drone <small class="text-muted">2 munites ago</small></p>
@@ -225,7 +225,7 @@ $user_data = check_login($conn);
                     </div>
                     <div class="update">
                         <div class="profile-photo">
-                            <img src="img - Copy\bakcgroud.jpg">
+                            <img src="image\bakcgroud.jpg">
                         </div>
                         <div class="message">
                             <p><b>Mike Tyson</b> received his order of night lion tech gps drone <small class="text-muted">2 munites ago</small></p>
@@ -233,7 +233,7 @@ $user_data = check_login($conn);
                     </div>
                     <div class="update">
                         <div class="profile-photo">
-                            <img src="img - Copy\bakcgroud.jpg">
+                            <img src="image\bakcgroud.jpg">
                         </div>
                         <div class="message">
                             <p><b>Mike Tyson</b> received his order of night lion tech gps drone <small class="text-muted">2 munites ago</small></p>

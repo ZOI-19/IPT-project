@@ -425,109 +425,76 @@ $user_data = check_login($conn);
     </style>
     </style>
     </head>
-    <body class="">
-        <section class="header1">
-            <img src="img/deli.jpg" class="page" alt="Header Image">
-        </section>
-        <nav class="navBar">
-            <ul class="navbtn">
-              <li>
+    <body>
+    <section class="header1">
+        <img src="img/deli.jpg" class="page" alt="Header Image">
+    </section>
+    <nav class="navBar">
+        <ul class="navbtn">
+            <li>
                 <a href="landingpage3.php">
-                  <img src="img/SSD.jfif" alt="Logo" />
+                    <img src="img/SSD.jfif" alt="Logo" />
                 </a>
-              </li>
-          
-              <li>
+            </li>
+            <li>
                 <div class="Searchbar">
-                  <input type="text" id="search-item" placeholder="Search products" onkeyup="search()" />
+                    <input type="text" id="search-item" placeholder="Search products" onkeyup="search()" />
                 </div>
-              </li>
-          
-              <li>
-                <a href="Shoppage2.php">Home</a>
-              </li>
-          
-              <li>
-                <a href="ORDERS.php">Orders</a>
-              </li>
-          
-              <li>
+            </li>
+            <li><a href="Shoppage2.php">Home</a></li>
+            <li><a href="ORDERS.php">Orders</a></li>
+            <li>
                 <a href="Account.php">
-                  <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
-                       xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                       fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round"
-                          stroke-linejoin="round" stroke-width="2"
-                          d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0
-                          4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951
-                          3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                  </svg>
-                </a>
-              </li>
-            </ul>
-          
-            <div class="Searchbar2">
-              <input type="text" id="search-item-2" placeholder="Search products" oninput="search('search-item-2')" />
-            </div>
-          </nav>
-          
-        <div class="container"> 
-            <nav class="Categories">
-                <ul>
-                    <li>All</li>
-                    <li>Sweet</li>
-                    <li>Salty</li>
-                    <li>Spicy</li>
-                </ul>
-            </nav>
-            
-            <header>
-                <div class="title">product list</div>
-                <div class="icon-cart">
-                    <svg  aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312"/>
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
                     </svg>
-                    <span>0</span>
-                    
-                </div>
-            </header>
+                </a>
+            </li>
+        </ul>
+        <div class="Searchbar2">
+            <input type="text" id="search-item-2" placeholder="Search products" oninput="search('search-item-2')" />
+        </div>
+    </nav>
 
-            <div class="listProduct">
-                <div class="item">
-                    <img src="img/FP5.jpg" alt="">
-                    <h2>Name product</h2>
-                    <div class="price">$200</div>
-                    <button class="addcart">
-                        Add To Cart
-                    </button>
-                </div>
+    <div class="container">
+        <nav class="Categories">
+            <ul>
+                <li>All</li>
+                <li>Dried Fruit</li>
+                <li>Sweet and Crunchy</li>
+                <li>Savory Snacks</li>
+                <li>Salty</li>
+                <li>Sweet and Spicy</li>
+            </ul>
+        </nav>
+
+        <header>
+            <div class="title">Product List</div>
+            <div class="icon-cart">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312"/>
+                </svg>
+                <span>0</span>
             </div>
+        </header>
+
+        <div class="listProduct">
+            <!-- Dynamic product items will be injected here -->
         </div>
-        <div class="cartTab">
-            <h1>Shopping Cart</h1>
-            <div class="listCart">
-                <div class="item">
-                    <div class="image">
-                        <img class="picture" src="img/BEANS.jpg" alt="">
-                    </div>
-                    <div class="name">
-                        NAME
-                    </div>
-                    <div class="totalPrice">
-                        $200
-                    </div>
-                    <div class="quantity">
-                        <span class="minus">-</span>
-                        <span>1</span>
-                        <span class="plus">+</span>
-                    </div>
-                </div>
-            </div> 
-            <div class="btn">
-                    <button class="close">Close</button>
-                    <a href="checkoutpage.php"><button class="CheckOut">Checkout</button></a>
-            </div>           
+    </div>
+
+    <div class="cartTab">
+        <h1>Shopping Cart</h1>
+        <div class="listCart">
+            <!-- Cart items will be injected here -->
         </div>
-    <script src="IPTcartjava2.js"></script>
-    </body>
-    </html>
+        <div class="btn">
+            <button class="close">Close</button>
+            <a href="checkoutpage.php"><button class="CheckOut">Checkout</button></a>
+        </div>
+    </div>
+
+
+<script src="IPTcartjava2.js"></script>
+</body>
+</html>

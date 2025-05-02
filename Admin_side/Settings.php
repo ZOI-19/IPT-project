@@ -1,19 +1,13 @@
-<?php
-include 'IPTconnect.php';
+<<?php
+// Start session
 session_start();
 
-// Fetch users and their total orders
-$query = "
-    SELECT 
-     u.id, u.fname, u.lname, u.email,
-    COUNT(o.id) AS total_orders
-    FROM users u
-    LEFT JOIN orders o ON u.id = o.user_id
-    GROUP BY u.id, u.fname, u.lname, u.email
-    ORDER BY u.id DESC
-";
 
-$result = mysqli_query($conn, $query);
+include("IPTconnect.php"); 
+include("IPTfunction.php"); 
+
+// Check if user is logged in
+$user_data = check_login($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -81,6 +75,7 @@ body{
     font-size: 0.88rem;
     background: var(--color-background);
     user-select: none;
+
     color: var(--color-dark);
 }
 .page {
@@ -91,21 +86,12 @@ body{
       z-index: 1000;
     
 }
-.logo{
-    background-color: var(--color-light);
-    align-items: center;
-    position: relative;
-}
-.logo img{
-    border-radius: 50%;
-}
 .container{
     display: grid;
     width: 100%;
     margin: 0 auto;
     gap: 1.8rem;
     grid-template-columns: 14rem auto 23rem;
-    background-color: var(--color-white);
 }
 
 
@@ -117,7 +103,6 @@ aside{
     height: 100vh;
     background: white;
     overflow-y: auto;
-    border-right: 1px solid;
 }
 
 aside::-webkit-scrollbar {
@@ -220,56 +205,16 @@ aside .sidebar .message-count span{
     font-size: 11px;
     border-radius: var(--border-radius-1);
 }
-
-
-main h1 {
-    margin: 1.5rem 0 1rem 1.5rem;
-    font-size: 2rem;
-    font-weight: 600;
-}
-
-
-main .Customer {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 1rem;
-    box-sizing: border-box;
-}
-
-.Customer table {
-    width: 100%;
-    max-width: 1200px;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: var(--box-shadow);
-    overflow: hidden;
-    margin: 0 auto;
-}
-
-.Customer table th,
-.Customer table td {
-    border: 1px solid #ccc;
-    padding: 1rem;
-    text-align: left;
-}
-
-.Customer table th {
-    background-color: var(--color-light);
-    font-weight: 600;
-}
-
-
 </style>
 <body>
 <section class="header1">
-    <img src="img - Copy\deli.jpg" class="page" alt="Header Image"/>
+    <img src="image\deli.jpg" class="page" alt="Header Image"/>
 </section>
-    <div class="container">
+    <div class="left-side">
     <aside>
             <div class="top">
                 <div class="logo">
-                    <img src="img - Copy\SSD.jpeg" alt="">
+                    <img src="image\SSD.jpeg" alt="">
                     <h2 class="danger">Delizeus Kai Food Products</h2>
                 </div>
                 <div class="close" id="close-btn">
@@ -293,12 +238,12 @@ main .Customer {
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="Message.php">
+                <a href="#">
                     <span class="material-symbols-sharp">mail</span>
                     <h3>Message</h3>
                     <span class="message-count">26</span>
                 </a>
-                <a href="Settings.php">
+                <a href="#">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
@@ -308,31 +253,6 @@ main .Customer {
                 </a>  
             </div>
         </aside>
-        <main>
-            <h1>Customers</h1>
-            <div class="Customer">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Total Orders</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($row = mysqli_fetch_assoc($result)) { ?>
-                            <tr>
-                                <td><?= htmlspecialchars($row['id']) ?></td>
-                                <td><?= htmlspecialchars($row['fname'] . ' ' . $row['lname']) ?></td>
-                                <td><?= htmlspecialchars($row['email']) ?></td>
-                                <td><?= $row['total_orders'] ?></td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
-        </main>
     </div>
 </body>
 </html>

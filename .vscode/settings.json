@@ -1,5 +1,7 @@
 {
     "liveServer.settings.port": 5501,
     "git.allowForcePush": true,
-    "git.alwaysShowStagedChangesResourceGroup": true
+    "git.alwaysShowStagedChangesResourceGroup": true,
+    "phpserver.phpPath": "php.exe",
+    "php.debug.executablePath": ""
 }

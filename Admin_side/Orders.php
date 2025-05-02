@@ -1,4 +1,4 @@
-<<?php
+<?php
 // Start session
 session_start();
 
@@ -75,7 +75,7 @@ body{
     font-size: 0.88rem;
     background: var(--color-background);
     user-select: none;
-
+    overflow: visible;
     color: var(--color-dark);
 }
 .page {
@@ -114,6 +114,7 @@ aside::-webkit-scrollbar-thumb {
   border-radius: 10px;
   display: none;
 }
+
 
 aside .top{
     background: white;
@@ -205,16 +206,56 @@ aside .sidebar .message-count span{
     font-size: 11px;
     border-radius: var(--border-radius-1);
 }
+
+.Categories {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .Categories ul {
+      display: flex;
+      list-style: none;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .Categories ul li {
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .Categories ul li::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -5px;
+      width: 0;
+      height: 3px;
+      background-color: yellow;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .Categories ul li:hover::after {
+      width: 100%;
+    }
+
 </style>
 <body>
 <section class="header1">
-    <img src="img - Copy\deli.jpg" class="page" alt="Header Image"/>
+    <img src="image\deli.jpg" class="page" alt="Header Image"/>
 </section>
-    <div class="left-side">
+<div class="container">
     <aside>
             <div class="top">
                 <div class="logo">
-                    <img src="img - Copy\SSD.jpeg" alt="">
+                    <img src="image/SSD.jpeg" alt="">
                     <h2 class="danger">Delizeus Kai Food Products</h2>
                 </div>
                 <div class="close" id="close-btn">
@@ -253,6 +294,17 @@ aside .sidebar .message-count span{
                 </a>  
             </div>
         </aside>
+        <main>
+            <nav class="Categories">
+                <ul>
+                    <li>All Orders</li>
+                    <li>Packing</li>
+                    <li>Dispatch</li>
+                    <li>Complete</li>
+                </ul>
+            </nav>
+
+        </main>
     </div>
 </body>
 </html>

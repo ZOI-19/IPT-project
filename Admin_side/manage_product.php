@@ -1,8 +1,13 @@
 <?php
+echo '<pre>';
+print_r($_FILES);
+echo '</pre>';
+
+
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db = "your_database_name"; // Replace with your DB name
+$db = "iptdelezuskai"; // Replace with your DB name
 
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
@@ -34,9 +39,16 @@ if ($action === 'add') {
     // Handle image upload
     if (!empty($_FILES['image']['name'])) {
         $imageName = uniqid() . "_" . basename($_FILES["image"]["name"]);
+        $uploadDir = 'uploads/';
         $targetFile = $uploadDir . $imageName;
-        move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile);
+    
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
+            // success
+        } else {
+            die("Error uploading file. Check folder permissions and file size.");
+        }
     }
+    
 
     $stmt = $conn->prepare("INSERT INTO products (name, price, category, description, image) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sdsss", $name, $price, $category, $description, $imageName);

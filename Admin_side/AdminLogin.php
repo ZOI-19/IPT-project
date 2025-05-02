@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <style>
 
     body {
-        background-image: url('img - Copy/bakcgroud.jpg');
+        background-image: url('image/bakcgroud.jpg');
         background-position: center;
         background-repeat: repeat;
         background-attachment: fixed;
@@ -187,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="left">
                 <h3>Deli Zeus Kai Food Products</h3>
-                <img src="img - Copy/SSD.jfif" class="loginimg">
+                <img src="image/SSD.jfif" class="loginimg">
             </div>
 
             <div class="right">
@@ -201,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </form>
                 <p class="register">Don't have an account? <a href="signupform.php">Register</a></p>
                 <button class="google" id="google-login-btn" >
-                    <img src="img - Copy/Search.png">Login with google
+                    <img src="image/Search.png">Login with google
                 </button>
 
             </div>
