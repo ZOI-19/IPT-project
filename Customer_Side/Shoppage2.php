@@ -1,14 +1,47 @@
 <?php
-// Start session
-session_start();
+include('IPTconnect.php');
 
+$searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
+$categoryId = isset($_GET['category']) ? $_GET['category'] : '';
 
-include("IPTconnect.php"); 
-include("IPTfunction.php"); 
+$sql = "SELECT p.*, c.name AS category_name 
+        FROM products p 
+        JOIN categories c ON p.category = c.id";
 
-// Check if user is logged in
-$user_data = check_login($conn);
+$conditions = [];
+$params = [];
+$types = "";
+
+// Add search filter
+if (!empty($searchTerm)) {
+    $conditions[] = "p.name LIKE ?";
+    $params[] = "%" . $searchTerm . "%";
+    $types .= "s";
+}
+
+// Add category filter
+if (!empty($categoryId)) {
+    $conditions[] = "p.category = ?";
+    $params[] = $categoryId;
+    $types .= "i";
+}
+
+// Apply conditions
+if (!empty($conditions)) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$stmt = $conn->prepare($sql);
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
+
     
     <!DOCTYPE html>
     <html>
@@ -21,7 +54,7 @@ $user_data = check_login($conn);
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
     body{
 
-        font-family: 'Courier New', Courier, monospace;
+        
         margin: 0;
         background-color: rgb(233, 226, 226);
     }
@@ -58,6 +91,14 @@ $user_data = check_login($conn);
         position: relative;
         justify-self: flex-start;
         float: inline-start;
+    }
+
+    .Searchbar{
+        margin-left: 30px;
+        gap: 10px;
+    }
+    .Searchbar button{
+        border-radius: 10px;
     }
     .Searchbar2{
         display: none;
@@ -116,7 +157,7 @@ $user_data = check_login($conn);
     }
 
     .container{
-        width: 900px;
+        width: 90%;
         max-width: 90vw;
         margin: auto;
         text-align: center;
@@ -138,6 +179,7 @@ $user_data = check_login($conn);
     header .icon-cart {
         position: relative; /* Ensures absolute positioning of span is relative to this */
         display: inline-block;
+        cursor: pointer;
     }
 
     header .icon-cart span {
@@ -157,15 +199,17 @@ $user_data = check_login($conn);
 
 
     .listProduct .item img{
-        width: 90%;
+        width: 100%;
+        height: 100px;
         filter: drop-shadow(0 5px 5px #132013);
 
     }
 
     .listProduct{
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
+        grid-template-columns: repeat(5, 1fr);
+        column-gap: 20px;
+        row-gap: 4rem;
     }
 
     .listProduct .item{
@@ -173,18 +217,29 @@ $user_data = check_login($conn);
         padding: 20px;
         border-radius: 20px;
 
+
     }
 
     .listProduct .item h2{
         font-weight: 500;
         font-size: large;
+        font-style: normal;
 
     }
 
     .listProduct .item .price{
         letter-spacing: 7px;
         font-size: small;
+        display: flex;
+        flex-direction: column;
     }
+    .listProduct .item {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* pushes button to bottom */
+        height: 100%; /* or a fixed height like 300px */
+    }
+
 
     .listProduct .item button{
         background-color: #353432;
@@ -194,33 +249,63 @@ $user_data = check_login($conn);
         margin-top: 10px;
         border: none;
         cursor: pointer;
+        position: relative;
+
     }
 
-    .cartTab{
-        width: 400px;
-        background-color: whitesmoke;
-        color: #eee;
+    .cartTab {
         position: fixed;
-        inset: 0 -400px 0 auto;
-        display: grid;
-        grid-template-rows: 70px 1fr 70px;
-        transition: 0.5s;
-        color: black;
+        top: 0;
+        right: 0;
+        width: 430px;
+        max-width: 90%;
+        height: 100%;
+        background-color: #fff;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1000;
+
+        overflow-y: auto;
     }
-    body.showCart .cartTab{
-        inset: 0 0 0 auto;
+    body.showCart .cartTab {
+        transform: translateX(0);
     }
     body.showCart .container{
         transform: translateX(-250px);
+    }
+    body.showCart::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+    }
+    .closeCart {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
     }
     .cartTab h1{
         padding: 20px;
         margin: 0;
         font-weight: 300;
-        border-bottom: grey  2px solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-bottom: black 2px solid;
+        background-color: #353432;
     }
 
     .cartTab a .btn{
+        position: fixed;
         display: grid;
         grid-template-columns: repeat(2, 1fr); 
     }
@@ -246,13 +331,15 @@ $user_data = check_login($conn);
     }
 
     .cartTab .listCart .item{
+        padding: 10px;
         display: grid;
         grid-template-columns: 70px 150px 50px 1fr;
-        gap: 8px;
+        gap: 5px;
         text-align: center;
         align-items: center;   
         border-bottom: 2px solid;
-        margin: 5px 5px;
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
 
     .listCart .quantity span{
@@ -276,6 +363,7 @@ $user_data = check_login($conn);
 
     .listCart{
         overflow: auto;
+        
     }
 
     .listCart::-webkit-scrollbar{
@@ -309,9 +397,17 @@ $user_data = check_login($conn);
 
         .Searchbar2 {
             display: flex;
-            width: 100%;
+            width: 90%;
+            gap: 10px;
             justify-content: center;
             padding: 10px;
+
+        }
+        .Searchbar2 button {
+            background-color:lightyellow;
+            font-weight: bold;
+            border-radius: 10px;
+            
         }
 
         .Searchbar2 input {
@@ -326,15 +422,17 @@ $user_data = check_login($conn);
         }
 
         .Categories ul {
-            overflow-x: auto;
+            
             display: flex;
             gap: 20px;
-            padding: 10px 0;
+            padding: 10px   0;
+            overflow-y: auto;
         }
 
         .Categories ul li {
             font-size: 14px;
             white-space: nowrap;
+            overflow-y: auto;
         }
 
         .Categories ul::-webkit-scrollbar {
@@ -349,6 +447,7 @@ $user_data = check_login($conn);
         .listProduct {
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+            row-gap: 2rem;
         }
 
         .listProduct .item {
@@ -360,40 +459,82 @@ $user_data = check_login($conn);
             height: auto;
         }
 
+       
         .cartTab {
-            width: 100%;
-            inset: 0 -100% 0 auto;
+            width: 100%; 
+            padding: 10px; 
+            font-size: 14px; 
         }
 
-        body.showCart .container {
-            transform: none;
+        .cartTab h1 {
+            font-size: 20px; 
+            text-align: center; 
         }
 
+        .cartTab .listCart {
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+        }
         .cartTab .listCart .item {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            gap: 10px;
-            border-bottom: 2px solid;
+            flex-direction: row; /* Row layout on mobile */
+            justify-content: flex-start; /* Adjust alignment */
+            padding: 5px; /* Adjust padding */
         }
 
-        .cartTab .listCart .item .image {
-            flex: 0 0 50px;
+        .cartTab .listCart .item img {
+            width: 60px; /* Set image width */
+            height: auto; /* Maintain aspect ratio */
         }
-
-        .cartTab .listCart .item .image img {
-            width: 50px;
-            height: auto;
+        .cartTab .listCart .item .name {
+            flex: 2; /* Give name more space */
+            text-align: left; /* Left align the name */
+            font-size: 14px; /* Adjust font size */
         }
 
         .cartTab .listCart .item .name,
         .cartTab .listCart .item .totalPrice,
         .cartTab .listCart .item .quantity {
-            flex: 1 1 auto;
-            font-size: 12px;
-            text-align: center;
+            flex: 1; 
+            text-align: left; 
+            font-size: 14px; 
+        }
+        .cartTab .listCart .item .totalPrice {
+            flex: 1; /* Set flex for price */
+            text-align: center; /* Center align price */
+        }
+
+        .cartTab .listCart .item .quantity {
+            flex: 1; /* Set flex for quantity */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; /* Center align quantity controls */
+            gap: 5px; /* Spacing between quantity controls */
+        }
+
+        .cartTab .listCart .item .quantity span {
+            width: 25px;
+            height: 25px; 
+            background-color: #eee; 
+            color: #555; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .btn {
+            
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px; 
+            padding: 10px 0; 
+        }
+
+        .btn button {
+            width: 100%; 
+            padding: 10px; 
+            font-size: 14px; 
         }
 
         header {
@@ -419,10 +560,19 @@ $user_data = check_login($conn);
         .listProduct .item .price {
             letter-spacing: normal;
         }
+        .listCart .item  {
+            align-items: center;
+            justify-content: center;
+        }
+        .listCart .item  img{
+            height: 100px;
+            width: 30px;
+        }
+
     }
+    
 
         
-    </style>
     </style>
     </head>
     <body>
@@ -437,9 +587,11 @@ $user_data = check_login($conn);
                 </a>
             </li>
             <li>
-                <div class="Searchbar">
-                    <input type="text" id="search-item" placeholder="Search products" onkeyup="search()" />
-                </div>
+            <form class="Searchbar" method="GET" action="">
+                <input type="text" name="search" placeholder="Search products..." 
+                        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                <button type="submit">Search</button>
+            </form>
             </li>
             <li><a href="Shoppage2.php">Home</a></li>
             <li><a href="ORDERS.php">Orders</a></li>
@@ -451,26 +603,41 @@ $user_data = check_login($conn);
                 </a>
             </li>
         </ul>
-        <div class="Searchbar2">
-            <input type="text" id="search-item-2" placeholder="Search products" oninput="search('search-item-2')" />
-        </div>
-    </nav>
+        <form class="Searchbar2" method="GET" action="">
+                <input type="text" name="search" placeholder="Search products..." 
+                        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                <button type="submit">Search</button>
+        </form>
+
 
     <div class="container">
-        <nav class="Categories">
+        <!-- Category filter section -->
+        <div class="Categories">
             <ul>
-                <li>All</li>
-                <li>Dried Fruit</li>
-                <li>Sweet and Crunchy</li>
-                <li>Savory Snacks</li>
-                <li>Salty</li>
-                <li>Sweet and Spicy</li>
+                <!-- 'All' Category Link -->
+                <?php
+                    // Fetch all categories
+                    $categoryQuery = "SELECT * FROM categories";
+                    $categoryResult = $conn->query($categoryQuery);
+
+                    echo '<li><a href="shoppage2.php" style="text-decoration:none;color:black;">All</a></li>'; // "All" category
+
+                    while ($row = $categoryResult->fetch_assoc()) {
+                        $isActive = ($categoryId == $row['id']) ? 'style="text-decoration:underline;"' : '';
+                        echo '<li><a href="?category=' . $row['id'] . '" ' . $isActive . ' style="text-decoration:none;color:black;">' . htmlspecialchars($row['name']) . '</a></li>';
+                    }
+                ?>
             </ul>
-        </nav>
+        </div>
+
+
+
+
+
 
         <header>
             <div class="title">Product List</div>
-            <div class="icon-cart">
+            <div class="icon-cart" >
                 <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312"/>
                 </svg>
@@ -479,22 +646,35 @@ $user_data = check_login($conn);
         </header>
 
         <div class="listProduct">
-            <!-- Dynamic product items will be injected here -->
+            <?php while($row = $result->fetch_assoc()): ?>
+                <div class="item" data-id="<?= $row['id'] ?>">
+                    <img src="../Admin_side/uploads/<?php echo htmlspecialchars($row['image']); ?>" alt="Product Image">
+                    <h2><?php echo htmlspecialchars($row['name']); ?></h2>
+                    <div class="price">₱<?php echo number_format($row['price'], 2); ?></div>
+                    <div class="Quantity">Stock:<?php echo number_format($row['quantity']); ?></div>
+                    <button class="addToCartBtn" data-id="<?= $row['id'] ?>"
+                            data-name="<?= htmlspecialchars($row['name']) ?>"
+                            data-price="<?= $row['price'] ?>"
+                            data-image="<?= htmlspecialchars($row['image']) ?>">
+                        Add to Cart
+                    </button>
+                </div>
+            <?php endwhile; ?>
         </div>
+
     </div>
 
     <div class="cartTab">
         <h1>Shopping Cart</h1>
         <div class="listCart">
-            <!-- Cart items will be injected here -->
+
         </div>
         <div class="btn">
             <button class="close">Close</button>
-            <a href="checkoutpage.php"><button class="CheckOut">Checkout</button></a>
+            <a href="checkoutpage.php"><button>Checkout</button></a>
         </div>
     </div>
 
-
 <script src="IPTcartjava2.js"></script>
-</body>
+</body> 
 </html>

@@ -186,6 +186,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
          <div class="container">
 
             <div class="left">
+                <h2>Welcome Admin!</h2>
                 <h3>Deli Zeus Kai Food Products</h3>
                 <img src="image/SSD.jfif" class="loginimg">
             </div>

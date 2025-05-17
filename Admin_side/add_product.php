@@ -1,6 +1,6 @@
     <?php
     $conn = new mysqli("localhost", "root", "", "iptdelezuskai");
-    $product = ['id' => '', 'name' => '', 'price' => '', 'category' => '', 'description' => '', 'image' => ''];
+    $product = ['id' => '', 'name' => '', 'price' => '', 'category' => '', 'description' => '', 'quantity' => ''];
 
     if (isset($_GET['id'])) {
         $id = $_GET['id'];
@@ -133,11 +133,29 @@
         <label>Price:</label><br>
         <input type="number" step="0.01" name="price" required value="<?= htmlspecialchars($product['price']) ?>"><br><br>
 
-        <label>Category:</label><br>
-        <input type="text" name="category" value="<?= htmlspecialchars($product['category']) ?>"><br><br>
+        <label>Category (Select or Add New):</label><br>
+            <select name="category" id="categorySelect">
+                <option value="">-- Select Category --</option>
+                <?php
+                $catQuery = $conn->query("SELECT name FROM categories ORDER BY name ASC");
+                while ($row = $catQuery->fetch_assoc()) {
+                    $catName = $row['name'];
+                    $selected = ($product['category'] == $catName) ? 'selected' : '';
+                    echo "<option value=\"$catName\" $selected>$catName</option>";
+                }
+                ?>
+            </select><br><br>
+
+            <label>Or Add New Category:</label><br>
+            <input type="text" name="new_category" placeholder="e.g., Sweet and Sour"><br><br>
+
+
 
         <label>Description:</label><br>
         <textarea name="description"><?= htmlspecialchars($product['description']) ?></textarea><br><br>
+        
+        <label>Stock quantity:</label><br>
+        <textarea name="quantity"><?= htmlspecialchars($product['quantity']) ?></textarea><br><br>
 
         <label>Image:</label><br>
         <input type="file" name="image"><br>

@@ -22,4 +22,28 @@ if (mysqli_query($conn, $query)) {
 } else {
     echo "Error updating settings: " . mysqli_error($conn);
 }
+
+
+// Get the posted data
+$address = $_POST['address'] ?? '';
+$house_number = $_POST['house_number'] ?? '';
+$barangay_name = $_POST['barangay_name'] ?? '';
+$municipality = $_POST['municipality'] ?? '';
+
+// Update the user's address in the database
+$query = "UPDATE users SET address = ?, house_number = ?, barangay_name = ?, municipality = ? WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ssssi", $address, $house_number, $barangay_name, $municipality, $user_id); // Use $user_id instead of $user_data['id']
+$stmt->execute();
+
+if ($stmt->affected_rows > 0) {
+    echo "Address updated successfully!";
+} else {
+    echo "Error updating address: " . mysqli_error($conn);
+}
+
+// Redirect back to account page or wherever needed
+header("Location: Account.php");
+exit();
+
 ?>

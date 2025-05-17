@@ -199,13 +199,15 @@
 
     /* Product Management Section */
     .Product {
-        margin-left: 18rem; 
-        width: calc(100% - 18rem); 
-        padding-left: 2rem; 
-        overflow-y: auto; 
-        height: 100vh; 
-        z-index: 0; 
+        margin-left: 18rem;
+        width: calc(100% - 18rem);
+        height: 100vh;
+        padding: 2rem;
+        box-sizing: border-box;
+        overflow-y: auto;
+        position: relative;
     }
+
     /* Product Header */
     .product-header h2 {
         font-size: 2rem;
@@ -259,46 +261,14 @@
         width: 50%; /* Increased width of description column */
         word-wrap: break-word;
     }
-
-    /* Product Management Popup */
-    .product-management {
-        display: none;
-        position: fixed;
-        top: 10%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: var(--border-radius-3);
-        box-shadow: var(--box-shadow);
-        z-index: 1000;
-        width: 400px;
-        max-width: 90%;
+    body {
+        overflow-y: auto;
     }
-
-    /* Form Inputs and Buttons inside the Popup */
-    .product-management form input,
-    .product-management form button {
-        display: block;
-        width: 100%;
-        margin: 0.8rem 0;
-        padding: 0.8rem;
-        font-size: 1rem;
-        border-radius: var(--border-radius-1);
-        border: 1px solid #ccc;
+    body::-webkit-scrollbar {
+        scrollbar-width: none   ;
     }
+    
 
-    /* Close Button for Popup */
-    .product-management .close-form {
-        background-color: var(--color-danger);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        float: right;
-        margin-bottom: 1rem;
-        cursor: pointer;
-        border-radius: var(--border-radius-2);
-    }
 
     </style>
     <body>
@@ -375,7 +345,7 @@
                                     <td>₱<?= number_format($row['price'], 2) ?></td>
                                     <td><?= htmlspecialchars($row['category']) ?></td>
                                     <td><?= htmlspecialchars($row['description']) ?></td>
-                                    <td><?= htmlspecialchars($row['stock_quantity']) ?></td>
+                                    <td><?= htmlspecialchars($row['quantity']) ?></td>
                                     <td>
                                         <?php if ($row['image']): ?>
                                             <img src="./uploads/<?= htmlspecialchars($row['image']) ?>" alt="Image" width="50">

@@ -6,10 +6,14 @@ include("IPTfunction.php");
 // Check if user is logged in and fetch user data
 $user_data = check_login($conn);
 
-// Fetch user details
-$user_email = isset($user_data['email']) ? $user_data['email'] : '';
-$user_first_name = isset($user_data['fname']) ? $user_data['fname'] : ''; 
-$user_last_name = isset($user_data['lname']) ? $user_data['lname'] : '';  
+// Fetch user address after update
+$query = "SELECT address, house_number, barangay_name, municipality FROM users WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_data['id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user_address = $result->fetch_assoc();
+ 
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +22,7 @@ $user_last_name = isset($user_data['lname']) ? $user_data['lname'] : '';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Account Settings</title>
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" rel="stylesheet" />
 </head>
 
 <style>
@@ -136,6 +140,8 @@ input {
 /* Mobile view adjustments */
 @media (max-width: 768px) {
   /* Adjust Sidebar to cover 50% of the screen */
+
+
   .sidebar {
     width: 50%; /* Sidebar will cover 50% of the screen width */
     height: calc(100vh - 130px); /* Sidebar takes up the rest of the screen height */
@@ -152,23 +158,25 @@ input {
   }
 
   .main-content {
-    margin-left: 0; /* Reset margin-left on mobile */
+    margin-left: 0; 
+    margin-top: 3rem;
   }
 
-  /* Mobile menu button positioning within the header */
+
   .mobile-menu-btn {
-    margin-top: 30px;
-    position: absolute ;
-    bottom: 10px; /* 10px from the bottom of the header */
-    left: 10px;   /* 10px from the left edge of the header */
+    position: absolute; /* Changed from fixed to absolute */
+    top: 140px; /* Adjusted to be below the header */
+    left: 10px; /* Distance from the left */
     background-color: white;
-    border: none;
     padding: 10px;
     font-size: 18px;
     cursor: pointer;
-    z-index: 1001; /* Ensure the button is on top of other elements */
+    z-index: 1001; 
     background: transparent;
+    border: 2px solid;
+    border-radius: 10px;
   }
+
 }
 
 /* PC View adjustments */
@@ -208,29 +216,27 @@ input {
   <div class="main-content" id="main-content">
     <!-- Default content (Settings Form) -->
     <h1>Account Settings</h1>
-    <form action="update_settings.php" method="POST">
-      <div class="form-group">
-        <label for="first_name">First Name</label>
-        <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user_first_name); ?>" required>
-      </div>
-
-      <div class="form-group">
-        <label for="last_name">Last Name</label>
-        <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user_last_name); ?>" required>
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user_email); ?>" required>
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter new password">
-      </div>
-
-      <button type="submit" class="update-btn">Update Settings</button>
+    <form action="account_update_settings.php" method="POST">
+        <div class="form-group">
+            <label for="address">Complete Delivery Address</label>
+            <input type="text" id="address" name="address" placeholder="Enter your delivery address" required>
+        </div>
+        <div class="form-group">
+            <label for="house_number">House Number</label>
+            <input type="text" id="house_number" name="house_number" placeholder="Enter House Number" required>
+        </div>
+        <div class="form-group">
+            <label for="barangay_name">Barangay Name</label>
+            <input type="text" id="barangay_name" name="barangay_name" placeholder="Enter Barangay Name" required>
+        </div>
+        <div class="form-group">
+            <label for="municipality">Municipality</label>
+            <input type="text" id="municipality" name="municipality" placeholder="Enter Municipality" required>
+        </div>
+        <button type="submit" class="update-btn">Update Settings</button>
     </form>
+
+
   </div>
 
   <!-- Hidden Data (PHP variables stored in JS-readable format) -->
@@ -248,7 +254,7 @@ input {
       const mainContent = document.getElementById('main-content');
       mainContent.innerHTML = `
         <h1>Account Settings</h1>
-        <form action="update_settings.php" method="POST">
+        <form action="account_update_settings.php" method="POST">
           <div class="form-group">
             <label for="first_name">First Name</label>
             <input type="text" id="first_name" name="first_name" value="${firstName}" required>
@@ -280,9 +286,9 @@ function loadAddress() {
   const mainContent = document.getElementById('main-content');
   mainContent.innerHTML = `
     <h1>Update Address</h1>
-    <form action="update_address.php" method="POST">
+    <form action="account_update_address.php" method="POST">
       <div class="form-group">
-        <label for="address">Delivery Address</label>
+        <label for="address">Complete Delivery Address</label>
         <input type="text" id="address" name="address" placeholder="Enter your delivery address" required>
       </div>
 

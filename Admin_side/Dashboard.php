@@ -8,6 +8,21 @@ include("IPTfunction.php");
 
 // Check if user is logged in
 $user_data = check_login($conn);
+include 'IPTconnect.php';
+
+
+// Fetch users and their total orders
+$query = "
+    SELECT 
+     u.id, u.fname, u.lname, u.email,
+    COUNT(o.id) AS total_orders
+    FROM users u
+    LEFT JOIN orders o ON u.id = o.user_id
+    GROUP BY u.id, u.fname, u.lname, u.email
+    ORDER BY u.id DESC
+";
+
+$result = mysqli_query($conn, $query);
 ?>
 
 <!DOCTYPE html>
@@ -36,15 +51,15 @@ $user_data = check_login($conn);
                 </div>
             </div>
             <div class="sidebar">
-                <a href="Dashboard.php">
+                <a href="Dashboard.php" class="active">
                     <span class="material-symbols-sharp">dashboard</span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="Orders.php">
+                <a href="ViewOrders.php">
                     <span class="material-symbols-sharp">receipt_long</span>
                     <h3>Orders</h3>
                 </a>
-                <a href="ViewCustomers.php" class="active">
+                <a href="ViewCustomers.php">
                     <span class="material-symbols-sharp">groups</span>
                     <h3>View Customers</h3>
                 </a>
@@ -135,59 +150,30 @@ $user_data = check_login($conn);
             </div>
             <!------------------- END OF INSIGHTS ------------------>
 
-            <div class="recent-order">
-                <h2>Recent Orders</h2>
+            <div class="Customer">
                 <table>
                     <thead>
                         <tr>
-                            <th>Product Name</th>
-                            <th>Product Number</th>
-                            <th>Payment</th>
-                            <th>status</th>
-                            <th>due</th>
-                            <th>Pending</th>
-                            <th></th>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Total Orders</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Foldable Mini drone</td>
-                            <td>85631</td>
-                            <td>due</td>
-                            <td class="warning">Pending</td>
-                            <td class="primary">Details</td>
-                        </tr>
-                        <tr>
-                            <td>Foldable Mini drone</td>
-                            <td>85631</td>
-                            <td>due</td>
-                            <td class="warning">Pending</td>
-                            <td class="primary">Details</td>
-                        </tr>
-                        <tr>
-                            <td>Foldable Mini drone</td>
-                            <td>85631</td>
-                            <td>due</td>
-                            <td class="warning">Pending</td>
-                            <td class="primary">Details</td>
-                        </tr>
-                        <tr>
-                            <td>Foldable Mini drone</td>
-                            <td>85631</td>
-                            <td>due</td>
-                            <td class="warning">Pending</td>
-                            <td class="primary">Details</td>
-                        </tr>
-                        <tr>
-                            <td>Foldable Mini drone</td>
-                            <td>85631</td>
-                            <td>due</td>
-                            <td class="warning">Pending</td>
-                            <td class="primary">Details</td>
-                        </tr>
+                        <?php while($row = mysqli_fetch_assoc($result)) { ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['id']) ?></td>
+                                <td><?= htmlspecialchars($row['fname'] . ' ' . $row['lname']) ?></td>
+                                <td><?= htmlspecialchars($row['email']) ?></td>
+                                <td><?= $row['total_orders'] ?></td>
+                            </tr>
+                        <?php } ?>
                     </tbody>
                 </table>
-                <a href="">Show All</a>
+            </div>
+            <div class="Recent-Orders">
+                
             </div>
         </main>
         <!------------------------------ END OF MAIN ------------------------>
@@ -241,56 +227,6 @@ $user_data = check_login($conn);
                     </div>
                 </div>
                 <!------------------------ END OF RECENT UPDATES -------------------------->
-                <div class="sales-analytics">
-                    <h2>Sales analytics</h2>
-                    <div class="item online">
-                        <div class="icon">
-                            <span class="material-symbols-sharp">shopping_cart</span>
-                        </div>
-                        <div class="righ">
-                            <div class="info">
-                                <h3>Online Orders</h3>
-                                <small class="text-muted">Last 24 hours</small>
-                            </div>
-                            <h5 class="success">+25%</h5>
-                            <h3>849</h3>
-                        </div>
-                    </div>
-                    <div class="item offline">
-                        <div class="icon">
-                            <span class="material-symbols-sharp">shopping_cart</span>
-                        </div>
-                        <div class="righ">
-                            <div class="info">
-                                <h3>offline Orders</h3>
-                                <small class="text-muted">Last 24 hours</small>
-                            </div>
-                            <h5 class="danger">-17%</h5>
-                            <h3>1100</h3>
-                        </div>
-                    </div>
-                    <div class="item customers">
-                        <div class="icon">
-                            <span class="material-symbols-sharp">shopping_cart</span>
-                        </div>
-                        <div class="righ">
-                            <div class="info">
-                                <h3>New customers</h3>
-                                <small class="text-muted">Last 24 hours</small>
-                            </div>
-                            <h5 class="success">+25%</h5>
-                            <h3>849</h3>
-                        </div>
-                    </div>
-                    <div class="item add-product">
-                        <div>
-                            <span class="material-icons-sharp">add</span>
-                            <h3>Add Product</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <script>
 const sideMenu = document.querySelector("aside");
 const menuBtn = document.querySelector("#menu-btn");

@@ -226,11 +226,11 @@ aside .sidebar .message-count span{
                     <span class="material-symbols-sharp">dashboard</span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="Orders.php">
+                <a href="ViewOrders.php">
                     <span class="material-symbols-sharp">receipt_long</span>
                     <h3>Orders</h3>
                 </a>
-                <a href="ViewCustomers.php" class="active">
+                <a href="ViewCustomers.php" >
                     <span class="material-symbols-sharp">groups</span>
                     <h3>View Customers</h3>
                 </a>
@@ -238,12 +238,12 @@ aside .sidebar .message-count span{
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="#">
+                <a href="Message.php" class="active">
                     <span class="material-symbols-sharp">mail</span>
                     <h3>Message</h3>
                     <span class="message-count">26</span>
                 </a>
-                <a href="#">
+                <a href="Settings.php">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>

@@ -10,6 +10,21 @@ $user_email = $user_data['email'] ?? '';
 $user_first_name = $user_data['fname'] ?? '';
 $user_last_name = $user_data['lname'] ?? '';
 $user_phone = $user_data['phone'] ?? '';
+
+// Fetch user address
+$query = "SELECT address, house_number, barangay_name, municipality FROM users WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_data['id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user_address = $result->fetch_assoc();
+
+// Use null coalescing operator to provide default values
+$address = htmlspecialchars($user_address['address'] ?? '');
+$house_number = htmlspecialchars($user_address['house_number'] ?? '');
+$barangay_name = htmlspecialchars($user_address['barangay_name'] ?? '');
+$municipality = htmlspecialchars($user_address['municipality'] ?? '');
+
 ?>
 
 
@@ -43,6 +58,7 @@ body {
 }
 
 .back-button {
+  margin-top: 10px;
   margin-bottom: 20px;
 }
 
@@ -52,8 +68,11 @@ body {
   font-size: 16px;
 }
 
+
+
 .back-button a:hover {
   text-decoration: underline;
+
 }
 
 .container {
@@ -110,66 +129,47 @@ form input {
   color: white;
 }
 
-.cartTab{
-        width: 400px;
-        background-color: whitesmoke;
-        color: #eee;
-        position: fixed;
-        inset: 0 -400px 0 auto;
-        display: grid;
-        grid-template-rows: 70px 1fr 70px;
-        transition: 0.5s;
-        color: black;
-    }
-    body.showCart .cartTab{
-        inset: 0 0 0 auto;
-    }
-    body.showCart .container{
-        transform: translateX(-250px);
-    }
-    .cartTab h1{
-        padding: 20px;
-        margin: 0;
-        font-weight: 300;
-        border-bottom: grey  2px solid;
-    }
+.cartTab .listCart {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
 
-    .cartTab .btn{
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); 
-    }
-
-    .cartTab .btn button{
-        background-color: yellow;
-        border: none;
-        font-family: Arial,;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .cartTab .btn .close{
-        background-color: white ;
-
-    }
-
-
-    .cartTab .listCart .item img{
-        width: 100%;
-        filter: drop-shadow(0 5px 5px #132013);
-
-    }
-
-    .cartTab .listCart .item{
-        display: grid;
-        grid-template-columns: 70px 150px 50px 1fr;
-        gap: 8px;
+      .cartTab .listCart .item {
+        display: flex;
+        gap: 10px;
         text-align: center;
-        align-items: center;   
-        border-bottom: 2px solid;
-        margin: 5px 5px;
-    }
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 2px solid #ddd;
+      }
 
-    .listCart .quantity span{
+      .cartTab .listCart .item .image,
+      .cartTab .listCart .item .name,
+      .cartTab .listCart .item .totalPrice,
+      .cartTab .listCart .item .quantity {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .cartTab .listCart .item .image img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        filter: drop-shadow(0 5px 5px #132013);
+      }
+
+      .cartTab .listCart .item .quantity {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .cartTab .listCart .item .quantity span {
         display: inline-block;
         width: 25px;
         height: 25px;
@@ -177,26 +177,17 @@ form input {
         color: #555;
         border-radius: 50%;
         cursor: pointer;
-    }
+      }
 
-
-    .listCart .quantity span::nth-child(2){
+      .cartTab .listCart .item .quantity span::nth-child(2) {
         background-color: transparent;
         color: #eee;
-    }
-    .listCart .item:nth-child(even){
-        background-color: #eee1;
-    }
-
-    .listCart{
-        overflow: auto;
-    }
-
-    .listCart::-webkit-scrollbar{
-        width: 0;
-    }
+      }
 
 .subtotal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px  ;
   font-size: 18px;
   margin-bottom: 20px;
 }
@@ -204,7 +195,7 @@ form input {
 .payment-button {
   width: 100%;
   padding: 15px;
-  background: #FFD700;
+  background:rgb(255, 220, 22);
   color: black;
   border: none;
   border-radius: 5px;
@@ -213,9 +204,13 @@ form input {
   cursor: pointer;
 }
 
+
+
 .payment-button:hover {
-  background: #e6c200;
+  background:rgb(255, 213, 0);
 }
+
+
 
 /* === MOBILE RESPONSIVE FIXES === */
 @media (max-width: 768px) {
@@ -247,133 +242,160 @@ form input {
 </section>
 
 <div class="back-button">
-  <a href="Shoppage2.php">← Back to Shop</a>
+  <a href="Shoppage2.php"> ← Back to shop</a>
 </div>
 
 <div class="container">
   <div class="payment-details">
     <h2>Payment Details</h2>
     <form id="checkoutForm">
-      <label>Full Name</label>
-      <input type="text" name="name" value="<?php echo htmlspecialchars($user_first_name . ' ' . $user_last_name); ?>" readonly>
-
-      <label>Email Address</label>
-      <input type="email" name="email" value="<?php echo htmlspecialchars($user_email); ?>" readonly>
-
-      <label>Phone Number</label>
-      <input type="tel" name="phone" value="<?php echo htmlspecialchars($user_phone); ?>" required>
-
-      <h3>Delivery Address</h3>
-      <input type="text" name="house_number" placeholder="House Number" required>
-      <input type="text" name="street" placeholder="Street Name" required>
-      <input type="text" name="barangay" placeholder="Barangay" required>
-      <input type="text" name="municipality" placeholder="Municipality" required>
-
-      <h3>Payment Method</h3>
-      <div class="payment-methods">
-        <button type="button" class="method" onclick="selectPayment('GCash')">GCash</button>
-        <button type="button" class="method" onclick="selectPayment('COD')">Cash on Delivery</button>
-      </div>
-      <input type="hidden" name="payment_method" id="payment_method" required>
+        <label>Full Name</label>
+        <input type="text" name="name" value="<?php echo htmlspecialchars($user_first_name . ' ' . $user_last_name); ?>" readonly>
+        <label>Email Address</label>
+        <input type="email" name="email" value="<?php echo htmlspecialchars($user_email); ?>" readonly>
+        <label>Phone Number</label>
+        <input type="tel" name="phone" value="<?php echo htmlspecialchars($user_phone); ?>" required>
+        <h3>Delivery Address</h3>
+            <input type="text" id="address" name="address" placeholder="Full address" value="<?php echo htmlspecialchars($user_address['address']); ?>" required>
+            <input type="text" id="house_number" name="house_number" placeholder="House number" value="<?php echo htmlspecialchars($user_address['house_number']); ?>" required>
+            <input type="text" id="barangay_name" name="barangay_name" placeholder="Barangay" value="<?php echo htmlspecialchars($user_address['barangay_name']); ?>" required>
+            <input type="text" id="municipality" name="municipality" placeholder="Municipality" value="<?php echo htmlspecialchars($user_address['municipality']); ?>" required>
+        <h3>Payment Method</h3>
+        <div class="payment-methods">
+            <button type="button" class="method" onclick="selectPayment('GCash')">GCash</button>
+            <button type="button" class="method" onclick="selectPayment('COD')">Cash on Delivery</button>
+        </div>
+        <input type="hidden" name="payment_method" id="payment_method" required>
     </form>
-  </div>
+</div>
+
+
 
   <div class="order-summary">
     <div class="cartTab">
       <h1>Shopping Cart</h1>
       <div class="listCart" id="listCart"></div>
       <div class="subtotal" id="subtotal"><strong>Subtotal:</strong> ₱0</div>
-      <button class="payment-button" onclick="checkout()">Checkout</button>
+      <button class="payment-button" type="submit" onclick="checkout()">Checkout</button>
     </div>
   </div>
 </div>
-<script src="IPTcheckout.js"></script>
+<script src="IPTcartjava2.js"></script>
 <script>
 // Read cart from localStorage
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let cart = JSON.parse(localStorage.getItem('myCart')) || [];
 
 function loadCart() {
-  const listCart = document.getElementById('listCart');
-  listCart.innerHTML = '';
+    const listCart = document.getElementById('listCart');
+    listCart.innerHTML = ''; // Clear previous content
 
-  let subtotal = 0;
+    let subtotal = 0;
 
-  if (cart.length === 0) {
-    listCart.innerHTML = '<p>Your cart is empty!</p>';
-  } else {
-    cart.forEach(item => {
-      subtotal += item.price * item.quantity;
-      listCart.innerHTML += `
-        <div class="item">
-          <div class="image"><img src="${item.image}" alt=""></div>
-          <div class="name">${item.name}</div>
-          <div class="totalPrice">₱${item.price * item.quantity}</div>
-          <div class="quantity">${item.quantity}</div>
-        </div>
-      `;
-    });
-  }
+    if (cart.length === 0) {
+        listCart.innerHTML = '<p>Your cart is empty!</p>';
+    } else {
+        cart.forEach(item => {
+            subtotal += item.price * item.quantity;
+            listCart.innerHTML += `
+                <div class="item">
+                    <div class="image"><img src="${item.image}" alt="${item.name}"></div>
+                    <div class="name">${item.name}</div>
+                    <div class="totalPrice">₱${(item.price * item.quantity).toFixed(2)}</div>
+                    <div class="quantity">${item.quantity}</div>
+                </div>
+            `;
+        });
+    }
 
-  document.getElementById('subtotal').innerHTML = `<strong>Subtotal:</strong> ₱${subtotal}`;
+    document.getElementById('subtotal').innerHTML = `<strong>Subtotal:</strong> ₱${subtotal.toFixed(2)}`;
 }
 
+// Load cart when the page is loaded
+document.addEventListener('DOMContentLoaded', loadCart);
 function selectPayment(method) {
   document.getElementById('payment_method').value = method;
   alert("Payment method selected: " + method);
 }
 
 function checkout() {
-  const paymentMethod = document.getElementById('payment_method').value;
-  if (!paymentMethod) {
-    alert('Please select a payment method!');
-    return;
-  }
+    const paymentMethod = document.getElementById('payment_method').value;
+    const address = document.querySelector('[name="address"]').value;
+    const houseNumber = document.querySelector('[name="house_number"]').value;
+    const barangayName = document.querySelector('[name="barangay_name"]').value;
+    const municipality = document.querySelector('[name="municipality"]').value;
 
-  if (cart.length === 0) {
-    alert('Your cart is empty!');
-    return;
-  }
-
-  const formData = {
-    name: document.querySelector('[name="name"]').value,
-    email: document.querySelector('[name="email"]').value,
-    phone: document.querySelector('[name="phone"]').value,
-    address: {
-      house_number: document.querySelector('[name="house_number"]').value,
-      street: document.querySelector('[name="street"]').value,
-      barangay: document.querySelector('[name="barangay"]').value,
-      municipality: document.querySelector('[name="municipality"]').value,
-    },
-    payment_method: paymentMethod,
-    cart: cart
-  };
-
-  fetch('checkout.php', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(formData)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert('Checkout Successful!');
-      localStorage.removeItem('cart');
-      window.location.href = 'Shoppage2.php'; // Go back to shop
-    } else {
-      alert('Checkout failed: ' + data.message);
+    // Check if all address fields are filled
+    if (!address || !houseNumber || !barangayName || !municipality) {
+        alert('Please fill in all address fields before checking out!');
+        return;
     }
-})
 
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Checkout failed. Try again.');
-  });
+    if (!paymentMethod) {
+        alert('Please select a payment method!');
+        return;
+    }
+
+    if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+    }
+
+    const formData = {
+        user_id: <?php echo $user_data['id']; ?>, // Pass user ID
+        address: address,
+        products: JSON.stringify(cart), // Convert cart to JSON string
+        total_price: cart.reduce((total, item) => total + (item.price * item.quantity), 0) // Calculate total price
+    };
+
+    fetch('processCheckout.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Checkout Successful!');
+            localStorage.removeItem('myCart'); // Clear cart
+            window.location.href = 'ViewOrders.php'; // Redirect to ViewOrders
+        } else {
+            alert('Checkout failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Checkout failed. Try again.');
+    });
 }
 
-document.addEventListener('DOMContentLoaded', loadCart);
+
+function addOrderToPending(orderId) {
+    // Fetch the order details to display in the Pending category
+    fetch(`../Admin_side/orderDetails.php?id=${orderId}`)
+        .then(response => response.json())
+        .then(order => {
+            const pendingOrdersTable = document.getElementById('pendingOrders' , '');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${order.id}</td>
+                <td>${order.user_id}</td>
+                <td>${order.address}</td>
+                <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
+                <td>₱${order.total_price}</td>
+                <td><button onclick="confirmOrder(${order.id})">Confirm</button></td>
+            `;
+            pendingOrdersTable.appendChild(newRow);
+        })
+        .catch(error => console.error('Error fetching order details:', error));
+}
+
 </script>
 
 </body>
 </html>
+
+
+
+
