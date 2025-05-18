@@ -291,7 +291,7 @@
                         <span class="material-symbols-sharp">dashboard</span>
                         <h3>Dashboard</h3>
                     </a>
-                    <a href="Orders.php">
+                    <a href="ViewOrders.php">
                         <span class="material-symbols-sharp">receipt_long</span>
                         <h3>Orders</h3>
                     </a>

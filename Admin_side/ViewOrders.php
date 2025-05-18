@@ -1,6 +1,10 @@
 <?php
 // Start session
 session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 
 
 include("IPTconnect.php"); 
@@ -9,12 +13,16 @@ include("IPTfunction.php");
 // Check if user is logged in
 $user_data = check_login($conn);
 
+
 // Fetch orders from the database
-$query = "SELECT * FROM orders WHERE status = 'pending'"; // Only fetch pending orders
+$query = "SELECT * FROM orders WHERE status IN ('pending', 'packing', 'dispatch', 'complete')"; // Fetch all relevant orders
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
 
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -479,9 +487,54 @@ function showCategory(category) {
         document.querySelector(`.${cat}`).style.display = (cat === category) ? 'block' : 'none';
     });
 }
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmedOrders = JSON.parse(sessionStorage.getItem('confirmedOrders')) || [];
+    confirmedOrders.forEach(orderId => {
+        // Logic to display the order in the Packing section
+        addOrderToPacking(orderId);
+    });
+});
+
 
 function confirmOrder(orderId) {
     if (!confirm("Are you sure you want to confirm this order and move it to Packing?")) return;
+
+    fetch('manage_product.php?action=move_to_packing_and_deduct', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ orderId: orderId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert("Order has been moved to Packing and stock updated.");
+            location.reload();
+        } else {
+            alert(data.message || "Failed to confirm order.");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Something went wrong: " + error.message);
+    });
+}
+
+
+
+function confirmOrder(orderId) {
+    if (!confirm("Are you sure you want to confirm this order and move it to Packing?")) return;
+
+    // Store the order ID in session storage
+    let confirmedOrders = JSON.parse(sessionStorage.getItem('confirmedOrders')) || [];
+    confirmedOrders.push(orderId);
+    sessionStorage.setItem('confirmedOrders', JSON.stringify(confirmedOrders));
 
     fetch('manage_product.php?action=move_to_packing_and_deduct', {
         method: 'POST',
@@ -505,47 +558,32 @@ function confirmOrder(orderId) {
     });
 }
 
-
-function confirmOrder(orderId) {
-    console.log("Confirm button clicked for order ID:", orderId); // Debug log
-    if (!orderId) {
-        console.error("No order ID provided.");
-        alert("No order ID provided.");
-        return;
-    }
-
-    // Fetch order details
-   fetch(`orderDetails.php?id=${orderId}`)
-       .then(response => {
-           console.log("Response from orderDetails.php:", response); // Log the response
-           // Check if the response is JSON
-           const contentType = response.headers.get('content-type');
-           if (contentType && contentType.includes('application/json')) {
-               return response.json(); // Parse JSON if the content type is correct
-           } else {
-               return response.text().then(text => {
-                   console.error('Received non-JSON response:', text);
-                   throw new Error('Received unexpected response format from server.');
-               });
-           }
-       })
-   
-    .then(order => {
-        // Process your JSON data here
-        if (!order.success) {
-            throw new Error(order.message);
-        }
-        // Continue with your logic to handle the order
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error: ' + error.message);
-    });
+function refreshPendingOrders() {
+    fetch('ViewOrders.php') // Fetch the updated list of pending orders
+        .then(response => response.text())
+        .then(html => {
+            document.querySelector('.Pending').innerHTML = html; // Update the Pending section with new data
+        })
+        .catch(error => console.error('Error refreshing pending orders:', error));
 }
 
+function removeOrderFromPending(orderId) {
+    const pendingOrdersTable = document.getElementById('pendingOrders');
+    const rows = pendingOrdersTable.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const idCell = row.cells[0]; // Assuming the first cell contains the order ID
+        if (idCell && idCell.textContent == orderId) {
+            pendingOrdersTable.deleteRow(i); // Remove the row from the Pending table
+            break; // Exit the loop after removing the order
+        }
+    }
+}
+
+
 function moveOrderToPacking(orderId) {
-    // Logic to move order to Packing category
-    fetch('manage_order.php', {
+    fetch('manage_product.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -572,77 +610,94 @@ function moveOrderToPacking(orderId) {
 }
 
 
+
 function addOrderToPacking(orderId) {
-    // Fetch the order details to display in the Packing category
     fetch(`orderDetails.php?id=${orderId}`)
         .then(response => response.json())
         .then(order => {
-            console.log("Order details fetched for packing:", order); // Log the order details
-            const packingOrdersTable = document.getElementById('packingOrders'); // Ensure you have this table in your HTML
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${order.id}</td>
-                <td>${order.user_id}</td>
-                <td>${order.address}</td>
-                <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
-                <td>₱${order.total_price}</td>
-                <td>
-                    <button onclick="moveOrderToDispatch(${order.id})">Move to Dispatch</button>
-                </td>
-            `;
-            packingOrdersTable.appendChild(newRow);
+            if (order.success) {
+                const packingOrdersTable = document.getElementById('packingOrders'); // Ensure this table exists
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.user_id}</td>
+                    <td>${order.address}</td>
+                    <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
+                    <td>₱${order.total_price}</td>
+                    <td>
+                        <button onclick="moveOrderToDispatch(${order.id})">Move to Dispatch</button>
+                    </td>
+                `;
+                packingOrdersTable.appendChild(newRow);
+            } else {
+                console.error('Order not found:', order.message);
+            }
         })
         .catch(error => console.error('Error fetching order details:', error));
 }
 
-
-
-
 function moveOrderToDispatch(orderId) {
-    // Logic to move order to Dispatch category
-    fetch('manage_order.php', {
+    fetch('manage_product.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            action: 'move_to_dispatch',
-            orderId: orderId
-        })
+        body: JSON.stringify({ action: 'move_to_dispatch', orderId: orderId })
     })
-    .then(res => res.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json(); // Ensure the response is valid JSON
+    })
     .then(data => {
         if (data.success) {
             alert('Order moved to Dispatch!');
-            // Optionally, refresh the orders list or update the UI
-            showCategory('Dispatch'); // Show Dispatch category
-            addOrderToDispatch(orderId); // Add order to Dispatch section
         } else {
             alert('Error moving order: ' + data.message);
         }
+    })
+    .catch(error => {
+        console.error('Error moving order:', error);
+        alert('Error moving order: ' + error.message);
     });
 }
+function removeOrderFromPacking(orderId) {
+    const packingOrdersTable = document.getElementById('packingOrders');
+    const rows = packingOrdersTable.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const idCell = row.cells[0]; // Assuming the first cell contains the order ID
+        if (idCell && idCell.textContent == orderId) {
+            packingOrdersTable.deleteRow(i); // Remove the row from the Packing table
+            break; // Exit the loop after removing the order
+        }
+    }
+}
+
 
 function addOrderToDispatch(orderId) {
-    // Fetch the order details to display in the Dispatch category
     fetch(`orderDetails.php?id=${orderId}`)
         .then(response => response.json())
         .then(order => {
-            const dispatchOrdersTable = document.getElementById('dispatchOrders'); // Ensure you have this table in your HTML
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${order.id}</td>
-                <td>${order.user_id}</td>
-                <td>${order.address}</td>
-                <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
-                <td>₱${order.total_price}</td>
-            `;
-            dispatchOrdersTable.appendChild(newRow);
+            if (order.success) {
+                const dispatchOrdersTable = document.getElementById('dispatchOrders'); // Ensure this table exists
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.user_id}</td>
+                    <td>${order.address}</td>
+                    <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
+                    <td>₱${order.total_price}</td>
+                `;
+                dispatchOrdersTable.appendChild(newRow);
+            } else {
+                console.error('Order not found:', order.message);
+            }
         })
         .catch(error => console.error('Error fetching order details:', error));
 }
-
-
 
 </script>
 </body>

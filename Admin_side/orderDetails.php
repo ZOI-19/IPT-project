@@ -3,9 +3,8 @@ header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-include 'IPTconnect.php'; // Assume this initializes $conn DB connection
+include 'IPTconnect.php'; // Ensure this initializes $conn DB connection
 
-// Check if 'id' is set in the GET request
 if (!isset($_GET['id'])) {
     echo json_encode(['success' => false, 'message' => 'Order ID is required.']);
     exit;
@@ -23,7 +22,6 @@ if (!$order) {
     exit;
 }
 
-// Assuming $products is correctly fetched and decoded
 $products = json_decode($order['products'], true); // Decode the JSON string
 
 if (json_last_error() !== JSON_ERROR_NONE) {
@@ -31,7 +29,6 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     exit;
 }
 
-// Return the order details as JSON
 echo json_encode([
     'success' => true,
     'id' => $order['id'],

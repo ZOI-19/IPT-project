@@ -1,8 +1,6 @@
 <?php
-echo '<pre>';
-print_r($_FILES);
-echo '</pre>';
-
+   error_reporting(E_ALL);
+   ini_set('display_errors', 1);
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -14,7 +12,8 @@ if ($conn->connect_error) {
 }
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
-
+   error_log("Script started"); // At the beginning of the script
+   
 // Resolve category ID (create if not exists)
 function resolveCategoryId($conn, $category, $newCategory) {
     $finalCategory = !empty($newCategory) ? trim($newCategory) : trim($category);
@@ -138,28 +137,60 @@ if ($action === 'deduct_stock') {
 
 // Move order to Packing action
 if ($action === 'move_to_packing') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['orderId'])) {
+        echo json_encode(['success' => false, 'message' => 'Order ID is required.']);
+        exit;
+    }
+
     $orderId = intval($data['orderId']);
     $stmt = $conn->prepare("UPDATE orders SET status = 'packing' WHERE id = ?");
     $stmt->bind_param("i", $orderId);
+    
     if ($stmt->execute()) {
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error moving order.']);
     }
     $stmt->close();
+    exit; // Ensure to exit after sending the response
 }
 
+
 if ($action === 'move_to_dispatch') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['orderId'])) {
+        echo json_encode(['success' => false, 'message' => 'Order ID is required.']);
+        exit;
+    }
+
     $orderId = intval($data['orderId']);
     $stmt = $conn->prepare("UPDATE orders SET status = 'dispatch' WHERE id = ?");
     $stmt->bind_param("i", $orderId);
+    $response = ['success' => true]; // or false based on your logic
+        $jsonResponse = json_encode($response);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            echo json_encode(['success' => false, 'message' => 'JSON encoding error: ' . json_last_error_msg()]);
+        } else {
+            echo $jsonResponse;
+        }
+        exit;
+        
+
+
     if ($stmt->execute()) {
         echo json_encode(['success' => true]);
+        error_log("Move to dispatch action triggered");
     } else {
         echo json_encode(['success' => false, 'message' => 'Error moving order.']);
     }
     $stmt->close();
+    exit; // Ensure to exi  t after sending the response
 }
+
+
+   
+
 if ($action === 'move_to_packing_and_deduct') {
     $data = json_decode(file_get_contents('php://input'), true);
     $orderId = intval($data['orderId']);
