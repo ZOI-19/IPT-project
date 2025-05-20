@@ -303,16 +303,11 @@
                         <span class="material-symbols-sharp">inventory_2</span>
                         <h3>Inventory</h3>
                     </a>
-                    <a href="Message.php">
-                        <span class="material-symbols-sharp">mail</span>
-                        <h3>Message</h3>
-                        <span class="message-count">26</span>
-                    </a>
                     <a href="Settings.php">
                         <span class="material-symbols-sharp">settings</span>
                         <h3>Settings</h3>
                     </a>
-                    <a href="#" class="Logout">
+                    <a href="Logout.php" class="Logout">
                         <span class="material-symbols-sharp">logout</span>
                         <h3>Logout</h3>
                     </a>  

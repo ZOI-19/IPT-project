@@ -1,6 +1,5 @@
 <?php
-   error_reporting(E_ALL);
-   ini_set('display_errors', 1);
+
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -144,19 +143,19 @@ if ($action === 'move_to_packing') {
     }
 
     $orderId = intval($data['orderId']);
-    $stmt = $conn->prepare("UPDATE orders SET status = 'packing' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE orders SET status = 'packing' WHERE id = ? AND status = 'pending'");
     $stmt->bind_param("i", $orderId);
     
-    if ($stmt->execute()) {
+    if ($stmt->execute() && $stmt->affected_rows > 0) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error moving order.']);
+        echo json_encode(['success' => false, 'message' => 'Error moving order or order already moved.']);
     }
     $stmt->close();
     exit; // Ensure to exit after sending the response
 }
 
-
+// Move order to Dispatch action
 if ($action === 'move_to_dispatch') {
     $data = json_decode(file_get_contents('php://input'), true);
     if (!isset($data['orderId'])) {
@@ -165,31 +164,48 @@ if ($action === 'move_to_dispatch') {
     }
 
     $orderId = intval($data['orderId']);
-    $stmt = $conn->prepare("UPDATE orders SET status = 'dispatch' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE orders SET status = 'dispatch' WHERE id = ? AND status = 'packing'");
     $stmt->bind_param("i", $orderId);
-    $response = ['success' => true]; // or false based on your logic
-        $jsonResponse = json_encode($response);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            echo json_encode(['success' => false, 'message' => 'JSON encoding error: ' . json_last_error_msg()]);
-        } else {
-            echo $jsonResponse;
+    
+    if ($stmt->execute() && $stmt->affected_rows > 0) {
+        // Fetch delivery riders
+        $ridersQuery = "SELECT first_name, last_name, rider_number FROM delivery_riders";
+        $ridersResult = $conn->query($ridersQuery);
+        $riders = [];
+        while ($rider = $ridersResult->fetch_assoc()) {
+            $riders[] = $rider;
         }
-        exit;
-        
-
-
-    if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
-        error_log("Move to dispatch action triggered");
+        echo json_encode(['success' => true, 'riders' => $riders]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error moving order.']);
+        echo json_encode(['success' => false, 'message' => 'Error moving order or order already moved.']);
     }
     $stmt->close();
-    exit; // Ensure to exi  t after sending the response
+    exit; // Ensure to exit after sending the response
 }
 
 
+   // Move order to Complete action
+   if ($action === 'move_to_complete') {
+       $data = json_decode(file_get_contents('php://input'), true);
+       if (!isset($data['orderId'])) {
+           echo json_encode(['success' => false, 'message' => 'Order ID is required.']);
+           exit;
+       }
+
+       $orderId = intval($data['orderId']);
+       $stmt = $conn->prepare("UPDATE orders SET status = 'complete' WHERE id = ? AND status = 'dispatch'");
+       $stmt->bind_param("i", $orderId);
+       
+       if ($stmt->execute() && $stmt->affected_rows > 0) {
+           echo json_encode(['success' => true]);
+       } else {
+           echo json_encode(['success' => false, 'message' => 'Error moving order or order already moved.']);
+       }
+       $stmt->close();
+       exit; // Ensure to exit after sending the response
+   }
    
+
 
 if ($action === 'move_to_packing_and_deduct') {
     $data = json_decode(file_get_contents('php://input'), true);

@@ -1,11 +1,5 @@
 <?php
-// Start session
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
 
 include("IPTconnect.php"); 
 include("IPTfunction.php"); 
@@ -15,14 +9,11 @@ $user_data = check_login($conn);
 
 
 // Fetch orders from the database
-$query = "SELECT * FROM orders WHERE status IN ('pending', 'packing', 'dispatch', 'complete')"; // Fetch all relevant orders
+$query = "SELECT * FROM orders"; // Fetch all orders regardless of status
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
-
-$stmt = $conn->prepare($query);
-$stmt->execute();
-$result = $stmt->get_result();
+$orders = $result->fetch_all(MYSQLI_ASSOC); // Fetch all orders as an associative array
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -323,7 +314,11 @@ aside .sidebar .message-count span{
 .Packing {
     display: none;
 }
-.Dispatching {
+.Dispatch {
+    display: none;
+}
+
+.Complete{
     display: none;
 }
 
@@ -373,16 +368,11 @@ button.Confirm:hover {
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="Message.php">
-                    <span class="material-symbols-sharp">mail</span>
-                    <h3>Message</h3>
-                    <span class="message-count">26</span>
-                </a>
                 <a href="Settings.php">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
-                <a href="" class="Logout">
+                <a href="Logout.php" class="Logout">
                     <span class="material-symbols-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>  
@@ -391,7 +381,7 @@ button.Confirm:hover {
 
                 <div class="Categories">
                     <ul>
-                        <li><a href="ViewOrders.php">All Orders</a></li>
+                        <li><a href="ViewOrders.php" onclick="showCategory('All-Orders')">All Orders</a></li>
                         <li onclick="showCategory('Pending')">Pending</li>
                         <li onclick="showCategory('Packing')">Packing</li>
                         <li onclick="showCategory('Dispatch')">Dispatch</li>
@@ -402,10 +392,34 @@ button.Confirm:hover {
 
 
         <div class="All-Orders">
-            
+            <h3>All Orders</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Address</th>
+                            <th>Products</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allOrders">
+                        <?php foreach ($orders as $order): ?>
+                            <tr>
+                                <td><?php echo $order['id']; ?></td>
+                                <td><?php echo $order['user_id']; ?></td>
+                                <td><?php echo $order['address']; ?></td>
+                                <td><a href="orderDetails.php?id=<?php echo $order['id']; ?>">View Products</a></td>
+                                <td><?php echo $order['total_price']; ?></td>
+                                <td><?php echo ucfirst($order['status']); ?></td> <!-- Displaying the status -->
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
         </div>
 
-        <div class="Pending">
+        <div class="Pending" style="display: none;">
             <h3>Pending Orders</h3>
                 <table>
                     <thead>
@@ -419,27 +433,42 @@ button.Confirm:hover {
                         </tr>
                     </thead>
                     <tbody id="pendingOrders">
-                        <?php while ($order = $result->fetch_assoc()): ?>
-                            <tr>
-                                <td><?php echo $order['id']; ?></td>
-                                <td><?php echo $order['user_id']; ?></td>
-                                <td><?php echo $order['address']; ?></td>
-                                <td>
-                                    <a href="orderDetails.php?id=<?php echo $order['id']; ?>">View Products</a>
-                                </td>
-                                <td><?php echo $order['total_price']; ?></td>
-                                <td>
-                                    <button class="Confirm" onclick="confirmOrder(<?php echo $order['id']; ?>)">Confirm</button>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
+                        <?php
+                        $pendingOrdersQuery = "SELECT * FROM orders WHERE status = 'pending' ORDER BY id DESC";
+                        $pendingOrdersResult = $conn->query($pendingOrdersQuery);
+                        if ($pendingOrdersResult && $pendingOrdersResult->num_rows > 0) {
+                            while ($order = $pendingOrdersResult->fetch_assoc()) {
+                                $products = json_decode($order['products'], true);
+                                ?>
+                                <tr>
+                                    <td><?php echo $order['id']; ?></td>
+                                    <td><?php echo $order['user_id']; ?></td>
+                                    <td><?php echo $order['address']; ?></td>
+                                    <td>
+                                        <?php
+                                        foreach ($products as $product) {
+                                            echo $product['name'] . ' x ' . $product['quantity'] . '<br>';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td><?php echo $order['total_price']; ?></td>
+                                    <td>
+                                        <button class="Confirm" onclick="confirmOrder(<?php echo $order['id']; ?>)">Confirm</button>
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+                        } else {
+                            echo "<tr><td colspan='6'>No pending orders.</td></tr>";
+                        }
+                        ?>
+                </tbody>
                 </table>
         </div>
 
 
 
-        <div class="Packing">
+        <div class="Packing" style="display: none;">
             <h3>Packing Orders</h3>
             <table>
                 <thead>
@@ -453,12 +482,25 @@ button.Confirm:hover {
                     </tr>
                 </thead>
                 <tbody id="packingOrders">
-                    <!-- Packing orders will be added here -->
+                    <?php foreach ($orders as $order): ?>
+                        <?php if ($order['status'] === 'packing'): ?>
+                            <tr>
+                                <td><?php echo $order['id']; ?></td>
+                                <td><?php echo $order['user_id']; ?></td>
+                                <td><?php echo $order['address']; ?></td>
+                                <td><a href="orderDetails.php?id=<?php echo $order['id']; ?>">View Products</a></td>
+                                <td><?php echo $order['total_price']; ?></td>
+                                <td>
+                                    <button onclick="moveOrderToDispatch(<?php echo $order['id']; ?>)">Move to Dispatch</button>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-        <div class="Dispatch">
+        <div class="Dispatch" style="display: none;">
             <h3>Dispatch Orders</h3>
             <table>
                 <thead>
@@ -468,16 +510,56 @@ button.Confirm:hover {
                         <th>Address</th>
                         <th>Products</th>
                         <th>Price</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="dispatchOrders">
-                    <!-- Dispatch orders will be added here -->
+                    <?php foreach ($orders as $order): ?>
+                        <?php if ($order['status'] === 'dispatch'): ?>
+                            <tr>
+                                <td><?php echo $order['id']; ?></td>
+                                <td><?php echo $order['user_id']; ?></td>
+                                <td><?php echo $order['address']; ?></td>
+                                <td><a href="orderDetails.php?id=<?php echo $order['id']; ?>">View Products</a></td>
+                                <td><?php echo $order['total_price']; ?></td>
+                                <td>
+                                    <button onclick="moveToComplete(<?php echo $order['id']; ?>)">Move to Complete</button>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-        <div class="Complete">
-
+        <div class="Complete" style="display: none;">
+            <h3>Completed Orders</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Address</th>
+                        <th>Products</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="completeOrders">
+                    <?php foreach ($orders as $order): ?>
+                        <?php if ($order['status'] === 'complete'): ?>
+                            <tr>
+                                <td><?php echo $order['id']; ?></td>
+                                <td><?php echo $order['user_id']; ?></td>
+                                <td><?php echo $order['address']; ?></td>
+                                <td><a href="orderDetails.php?id=<?php echo $order['id']; ?>">View Products</a></td>
+                                <td><?php echo $order['total_price']; ?></td>
+                                <td>Complete</td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 <script>
@@ -487,6 +569,11 @@ function showCategory(category) {
         document.querySelector(`.${cat}`).style.display = (cat === category) ? 'block' : 'none';
     });
 }
+
+// Ensure the All Orders section is displayed by default
+document.addEventListener('DOMContentLoaded', function() {
+    showCategory('All-Orders');
+});
 document.addEventListener('DOMContentLoaded', function() {
     const confirmedOrders = JSON.parse(sessionStorage.getItem('confirmedOrders')) || [];
     confirmedOrders.forEach(orderId => {
@@ -582,6 +669,7 @@ function removeOrderFromPending(orderId) {
 }
 
 
+// Move order to Packing action
 function moveOrderToPacking(orderId) {
     fetch('manage_product.php', {
         method: 'POST',
@@ -597,8 +685,9 @@ function moveOrderToPacking(orderId) {
     .then(data => {
         if (data.success) {
             alert('Order moved to Packing!');
-            showCategory('Packing'); // Show Packing category
-            addOrderToPacking(orderId); // Add order to Packing section
+            // Update the UI to reflect the order has been moved
+            removeOrderFromPending(orderId); // Remove from Pending
+            addOrderToPacking(orderId); // Add to Packing
         } else {
             alert('Error moving order: ' + data.message);
         }
@@ -608,7 +697,6 @@ function moveOrderToPacking(orderId) {
         alert('Error moving order: ' + error.message);
     });
 }
-
 
 
 function addOrderToPacking(orderId) {
@@ -637,31 +725,90 @@ function addOrderToPacking(orderId) {
 }
 
 function moveOrderToDispatch(orderId) {
-    fetch('manage_product.php', {
+    fetch('manage_product.php?action=move_to_dispatch', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'move_to_dispatch', orderId: orderId })
+        body: JSON.stringify({ orderId: orderId })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json(); // Ensure the response is valid JSON
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
             alert('Order moved to Dispatch!');
+            removeOrderFromPending(orderId); // Remove from Pending
+            addOrderToDispatch(orderId, data.riders); // Add to Dispatch and update riders
+            updateCustomerOrders(orderId, data.riders); // Update the ORDERS.php
         } else {
             alert('Error moving order: ' + data.message);
         }
     })
     .catch(error => {
-        console.error('Error moving order:', error);
-        alert('Error moving order: ' + error.message);
+        console.error('Error:', error);
+        alert('Something went wrong: ' + error.message);
     });
 }
+
+function updateCustomerOrders(orderId, riders) {
+    // Send a request to update the ORDERS.php
+    fetch('../Customer_side/ORDERS.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ orderId: orderId, riders: riders })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('ORDERS.php updated successfully.');
+        } else {
+            console.error('Error updating ORDERS.php:', data.message);
+        }
+    })
+    .catch(error => console.error('Error updating ORDERS.php:', error));
+}
+
+
+
+function addOrderToDispatch(orderId, riders) {
+    fetch(`orderDetails.php?id=${orderId}`)
+        .then(response => response.json())
+        .then(order => {
+            if (order.success) {
+                const dispatchOrdersTable = document.getElementById('dispatchOrders'); // Ensure this table exists
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.user_id}</td>
+                    <td>${order.address}</td>
+                    <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
+                    <td>₱${order.total_price}</td>
+                    <td>
+                        <button onclick="moveToComplete(${order.id})">Move to Complete</button>
+                    </td>
+                `;
+                dispatchOrdersTable.appendChild(newRow);
+
+                // Update the to-ship section with rider information
+                const toShipSection = document.getElementById('to-ship-btn');
+                riders.forEach(rider => {
+                    const riderInfo = document.createElement('div');
+                    riderInfo.innerHTML = `
+                        <strong>Will Deliver by:</strong><br>
+                        Name: ${rider.first_name} ${rider.last_name}<br>
+                        Number: ${rider.rider_number}<br>
+                    `;
+                    toShipSection.appendChild(riderInfo);
+                });
+            } else {
+                console.error('Order not found:', order.message);
+            }
+        })
+        .catch(error => console.error('Error fetching order details:', error));
+}
+
+
 function removeOrderFromPacking(orderId) {
     const packingOrdersTable = document.getElementById('packingOrders');
     const rows = packingOrdersTable.getElementsByTagName('tr');
@@ -677,12 +824,64 @@ function removeOrderFromPacking(orderId) {
 }
 
 
-function addOrderToDispatch(orderId) {
+
+    function moveToComplete(orderId) {
+       fetch('manage_product.php?action=move_to_complete', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({ orderId: orderId })
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.success) {
+               alert('Order moved to Complete!');
+               removeOrderFromToShip(orderId); // Remove from To Ship section
+               addOrderToShipped(orderId); // Add to Shipped section
+           } else {
+               alert('Error moving order: ' + data.message);
+           }
+       })
+       .catch(error => {
+           console.error('Error:', error);
+           alert('Something went wrong: ' + error.message);
+       });
+   }
+   
+
+function removeOrderFromDispatch(orderId) {
+    const packingOrdersTable = document.getElementById('dispatchOrders');
+    const rows = packingOrdersTable.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const idCell = row.cells[0]; // Assuming the first cell contains the order ID
+        if (idCell && idCell.textContent == orderId) {
+            packingOrdersTable.deleteRow(i); // Remove the row from the Packing table
+            break; // Exit the loop after removing the order
+        }
+    }
+}
+
+   function removeOrderFromToShip(orderId) {
+       const toShipOrdersList = document.getElementById('to-ship-orders-list');
+       const rows = toShipOrdersList.getElementsByTagName('li');
+       for (let i = 0; i < rows.length; i++) {
+           const row = rows[i];
+           if (row.dataset.orderId == orderId) {
+               toShipOrdersList.removeChild(row); // Remove the order from the To Ship list
+               break;
+           }
+       }
+   }
+   
+function addOrderToComplete(orderId) {
     fetch(`orderDetails.php?id=${orderId}`)
         .then(response => response.json())
         .then(order => {
             if (order.success) {
-                const dispatchOrdersTable = document.getElementById('dispatchOrders'); // Ensure this table exists
+                const dispatchOrdersTable = document.getElementById('completeOrders'); // Ensure this table exists
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
                     <td>${order.id}</td>
@@ -690,6 +889,7 @@ function addOrderToDispatch(orderId) {
                     <td>${order.address}</td>
                     <td><a href="orderDetails.php?id=${order.id}">View Products</a></td>
                     <td>₱${order.total_price}</td>
+                    <td>Complete</td>
                 `;
                 dispatchOrdersTable.appendChild(newRow);
             } else {
@@ -698,7 +898,6 @@ function addOrderToDispatch(orderId) {
         })
         .catch(error => console.error('Error fetching order details:', error));
 }
-
 </script>
 </body>
 </html>

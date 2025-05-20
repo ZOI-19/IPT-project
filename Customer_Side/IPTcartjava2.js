@@ -170,4 +170,54 @@
           });
       });
      
-  
+// Modified checkout function in IPTcartjava2.js
+function checkout() {
+    const formData = {
+        user_id: document.getElementById('user_id').value,
+        address: document.getElementById('address').value,
+        products: getSelectedProducts(), // Should return an array of product objects
+        total_price: calculateTotalPrice() // Calculate the total price dynamically
+    };
+
+    fetch('processCheckout.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Checkout Successful!');
+            // Redirect to ORDERS.php, anchor to the Pending tab
+            window.location.href = 'ORDERS.php#Pendin-btn';
+        } else {
+            alert('Checkout failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Checkout failed. Try again.');
+    });
+}
+
+function getSelectedProducts() {
+    // Implement this function to return an array of products selected in cart
+    // e.g., [{id:1, name:'Product 1', price:100, quantity:2, image:'img1.jpg'}, ...]
+    // This example is placeholder
+    const products = [];
+    // Collect product data from cart UI
+    // ...
+    return products;
+}
+
+function calculateTotalPrice() {
+    // Implement this function to calculate total price of products in cart
+    // This example returns fixed value as placeholder
+    let total = 0;
+    // sum prices * quantities
+    // ...
+    return total;
+}
+

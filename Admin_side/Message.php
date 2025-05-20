@@ -247,7 +247,7 @@ aside .sidebar .message-count span{
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
-                <a href="#" class="Logout">
+                <a href="Logout.php" class="Logout">
                     <span class="material-symbols-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>  

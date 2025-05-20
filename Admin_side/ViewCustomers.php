@@ -1,8 +1,11 @@
 <?php
-include 'IPTconnect.php';
 session_start();
 
-// Fetch users and their total orders
+include("IPTconnect.php"); 
+include("IPTfunction.php"); 
+
+// Check if user is logged in
+$user_data = check_login($conn);
 $query = "
     SELECT 
      u.id, u.fname, u.lname, u.email,
@@ -293,16 +296,11 @@ main .Customer {
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="Message.php">
-                    <span class="material-symbols-sharp">mail</span>
-                    <h3>Message</h3>
-                    <span class="message-count">26</span>
-                </a>
                 <a href="Settings.php">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
-                <a href="#" class="Logout">
+                <a href="Logout.php" class="Logout">
                     <span class="material-symbols-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>  

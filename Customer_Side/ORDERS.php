@@ -1,14 +1,22 @@
-  <?php
-  // Start session
-  session_start();
+<?php
+session_start();
+include("IPTconnect.php");
+include("IPTfunction.php");
 
-
-  include("IPTconnect.php"); 
-  include("IPTfunction.php"); 
-
-  // Check if user is logged in
-  $user_data = check_login($conn);
-  ?>
+// Check if user is logged in
+$user_data = check_login($conn);
+// Fetch pending orders for the logged-in user
+$user_id = $_SESSION['user_id']; // Ensure user_id is set in session
+$stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? AND status = 'pending' ORDER BY id DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$pendingResult = $stmt->get_result();
+// Fetch dispatch orders for the logged-in user
+$stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? AND status = 'dispatch' ORDER BY id DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$dispatchResult = $stmt->get_result();
+?>
 
   <!DOCTYPE html>
   <html lang="en">
@@ -192,6 +200,66 @@
       .btn button:hover {
         background-color: #0056b3;
       }
+
+      #pendingSection {
+        display: none;
+      }
+      #Pendin-btn {
+          cursor: pointer;
+          /* Add your styles */
+      }
+      #pendingOrdersList li, #shipped-orders-list li, #to-review li{
+          list-style: none;
+          margin-bottom: 20px;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 10px;
+          display: flex;
+      }
+      #pendingOrdersList img, #shipped-orders-list img, #to-review img{
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          margin-right: 10px;
+      }
+      #pendingOrdersList .details, #shipped-orders-list .details, #to-review .details{
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+      }
+      #pendingOrdersList .details div, #shipped-orders-list .details div, #to-review .details div {
+          margin: 2px 0;
+      }
+      #to-ship-orders-list li {
+    list-style: none;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    display: flex;
+}
+
+#to-ship-orders-list img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+#to-ship-orders-list .order-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#to-ship-orders-list .order-details div {
+    margin: 2px 0;
+}
+
+#to-ship-orders-list .rider-info {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
   @media screen and (max-width: 650px) {
       .page{
           margin-bottom: 10px;
@@ -298,7 +366,7 @@
           <li id="Pendin-btn">Pending</li>
           <li id="to-ship-btn">to ship</li>
           <li id="shipped-btn">Shipped</li>
-          <li id="to-review btn">To review</li>
+          <li id="to-review-btn">To review</li>
         </ul>
       </nav>
 
@@ -312,48 +380,228 @@
               <a href="checkoutpage.php"><button class="CheckOut">Checkout</button></a>
           </div>
       </div>
-
-<script>
-    // Function to toggle the cart visibility
-    function toggleCart() {
-        const cartTab = document.querySelector('.cartTab');
-        cartTab.classList.toggle('active'); // Toggle the visibility of the cart
-        loadCartFromStorage(); // Load cart items when opening the cart
-    }
-
-    // Event listener for the Cart button
-    document.getElementById('cart-tab-btn').addEventListener('click', function() {
-    console.log("Cart button clicked!"); // Add this line
-    toggleCart();
-});
-
-
-    // Function to load cart items from local storage
-    function loadCartFromStorage() {
-        let listCart = JSON.parse(localStorage.getItem("myCart")) || [];
-        const cartContainer = document.querySelector(".listCart");
-        cartContainer.innerHTML = ""; // Clear previous content
-
-        if (listCart.length === 0) {
-            cartContainer.innerHTML = "<p>Your cart is empty.</p>";
-            return;
-        }
-
-        listCart.forEach((item, index) => {
-            cartContainer.innerHTML += `
-                <div class="item">
-                    <div class="image"><img src="${item.image}" alt="${item.name}"></div>
-                    <div class="name">${item.name}</div>
-                    <div class="totalPrice">₱ ${(item.price * item.quantity).toFixed(2)}</div>
-                    <div class="quantity">
-                        <span onclick="updateQuantity(${index}, -1)">-</span>
-                        <span>${item.quantity}</span>
-                        <span onclick="updateQuantity(${index}, 1)">+</span>
+      <div id="pendingSection" style="display: none;">
+            <h3>Pending Orders</h3>
+            <ul id="pendingOrdersList">
+                <?php while ($order = $pendingResult->fetch_assoc()): ?>
+                    <?php 
+                    $products = json_decode($order['products'], true); // Decode JSON products array
+                    // Check if products is an array
+                    if (is_array($products)) {
+                        foreach ($products as $product): ?>
+                            <li class="order-item">
+                                <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                                <div class="order-details">
+                                    <div><strong><?php echo htmlspecialchars($product['name']); ?></strong></div>
+                                    <div>Quantity: <?php echo (int)$product['quantity']; ?></div>
+                                    <div>Total Price: ₱<?php echo number_format($product['price'] * $product['quantity'], 2); ?></div>
+                                </div>
+                            </li>
+                        <?php endforeach; 
+                    } else {
+                        echo "<li>Error: Products data is not valid.</li>";
+                    }
+                endwhile; ?>
+            </ul>
+        </div>
+        <div id="to-ship-orders" style="display: none;">
+            <h3>To Ship Orders</h3>
+            <ul id="to-ship-orders-list">
+                <?php while ($order = $dispatchResult->fetch_assoc()): ?>
+                    <?php $products = json_decode($order['products'], true); // Decode JSON products array ?>
+                    <?php foreach ($products as $product): ?>
+                           <li class="order-item" data-order-id="<?php echo $order['id']; ?>">
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                            <div class="order-details">
+                                <div><strong><?php echo htmlspecialchars($product['name']); ?></strong></div>
+                                <div>Quantity: <?php echo (int)$product['quantity']; ?></div>
+                                <div>Total Price: ₱<?php echo number_format($product['price'] * $product['quantity'], 2); ?></div>
+                                <div class="rider-info">
+                                    <strong>Will Deliver by:</strong><br>
+                                    <?php
+                                    // Assuming you have a way to get the rider information
+                                    $ridersQuery = "SELECT first_name, last_name, rider_number FROM delivery_riders";
+                                    $ridersResult = $conn->query($ridersQuery);
+                                    while ($rider = $ridersResult->fetch_assoc()) {
+                                        echo "Name: {$rider['first_name']} {$rider['last_name']}<br>";
+                                        echo "Number: {$rider['rider_number']}<br>";
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                <?php endwhile; ?>
+            </ul>
+        </div>
+        <div id="shipped-orders" style="display: none;">
+            <h3>Shipped Orders</h3>
+            <ul id="shipped-orders-list">
+                <?php
+                // Fetch and display shipped orders from the database
+                $stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? AND status = 'complete' ORDER BY id DESC");
+                $stmt->bind_param("i", $user_id);
+                $stmt->execute();
+                $shippedResult = $stmt->get_result();
+                while ($order = $shippedResult->fetch_assoc()): 
+                    $products = json_decode($order['products'], true);
+                    foreach ($products as $product): ?>
+                        <li class="order-item">
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                            <div class="order-details">
+                                <div><strong><?php echo htmlspecialchars($product['name']); ?></strong></div>
+                                <div>Quantity: <?php echo (int)$product['quantity']; ?></div>
+                                <div>Total Price: ₱<?php echo number_format($product['price'] * $product['quantity'], 2); ?></div>
+                                <div class="rider-info">
+                                    <strong>Delivered by:</strong><br>
+                                    <?php
+                                    // Assuming you have a way to get the rider information
+                                    $ridersQuery = "SELECT first_name, last_name, rider_number FROM delivery_riders";
+                                    $ridersResult = $conn->query($ridersQuery);
+                                    while ($rider = $ridersResult->fetch_assoc()) {
+                                        echo "Name: {$rider['first_name']} {$rider['last_name']}<br>";
+                                        echo "Number: {$rider['rider_number']}<br>";
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </li>
+                    <?php endforeach; 
+                endwhile; ?>
+            </ul>
+        </div>
+           <div id="to-review" style="display: none;">
+    <h3>To Review Orders</h3>
+    <ul id="to-review-list">
+        <?php
+        // Fetch and display orders that need to be reviewed from the database
+        $stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? AND status = 'review' ORDER BY id DESC");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $reviewResult = $stmt->get_result();
+        while ($order = $reviewResult->fetch_assoc()): 
+            $products = json_decode($order['products'], true);
+            foreach ($products as $product): ?>
+                <li class="order-item">
+                    <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                    <div class="order-details">
+                        <div><strong><?php echo htmlspecialchars($product['name']); ?></strong></div>
+                        <div>Quantity: <?php echo (int)$product['quantity']; ?></div>
+                        <div>Total Price: ₱<?php echo number_format($product['price'] * $product['quantity'], 2); ?></div>
+                        <div class="rider-info">
+                                    <strong>Delivered by:</strong><br>
+                                    <?php
+                                    // Assuming you have a way to get the rider information
+                                    $ridersQuery = "SELECT first_name, last_name, rider_number FROM delivery_riders";
+                                    $ridersResult = $conn->query($ridersQuery);
+                                    while ($rider = $ridersResult->fetch_assoc()) {
+                                        echo "Name: {$rider['first_name']} {$rider['last_name']}<br>";
+                                        echo "Number: {$rider['rider_number']}<br>";
+                                    }
+                                    ?>
+                                </div>
                     </div>
-                </div>`;
-        });
-    }
+                </li>
+            <?php endforeach; 
+        endwhile; ?>
+        <?php
+        // Also display shipped orders in the To Review section
+        $stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? AND status = 'complete' ORDER BY id DESC");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $shippedResult = $stmt->get_result();
+        while ($order = $shippedResult->fetch_assoc()): 
+            $products = json_decode($order['products'], true);
+            foreach ($products as $product): ?>
+                <li class="order-item">
+                    <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                    <div class="order-details">
+                        <div><strong><?php echo htmlspecialchars($product['name']); ?></strong></div>
+                        <div>Quantity: <?php echo (int)$product['quantity']; ?></div>
+                        <div>Total Price: ₱<?php echo number_format($product['price'] * $product['quantity'], 2); ?></div>
+                        <div class="rider-info">
+                                    <strong>Delivered by:</strong><br>
+                                    <?php
+                                    // Assuming you have a way to get the rider information
+                                    $ridersQuery = "SELECT first_name, last_name, rider_number FROM delivery_riders";
+                                    $ridersResult = $conn->query($ridersQuery);
+                                    while ($rider = $ridersResult->fetch_assoc()) {
+                                        echo "Name: {$rider['first_name']} {$rider['last_name']}<br>";
+                                        echo "Number: {$rider['rider_number']}<br>";
+                                    }
+                                    ?>
+                                </div>
+                    </div>
+                </li>
+            <?php endforeach; 
+        endwhile; ?>
+    </ul>
+</div>
+<script>
+   document.getElementById('Pendin-btn').addEventListener('click', function() {
+       document.getElementById('pendingSection').style.display = 'block';
+       document.getElementById('to-ship-orders').style.display = 'none';
+       document.getElementById('shipped-orders').style.display = 'none';
+       document.getElementById('to-review').style.display = 'none';
+       document.querySelector('.cartTab').style.display = 'none'; // Hide cart
+   });
 
+   document.getElementById('to-ship-btn').addEventListener('click', function() {
+       document.getElementById('pendingSection').style.display = 'none';
+       document.getElementById('to-ship-orders').style.display = 'block';
+       document.getElementById('shipped-orders').style.display = 'none';
+       document.getElementById('to-review').style.display = 'none';
+       document.querySelector('.cartTab').style.display = 'none'; // Hide cart
+   });
+
+   document.getElementById('shipped-btn').addEventListener('click', function() {
+       document.getElementById('pendingSection').style.display = 'none';
+       document.getElementById('to-ship-orders').style.display = 'none';
+       document.getElementById('shipped-orders').style.display = 'block';
+       document.getElementById('to-review').style.display = 'none';
+       document.querySelector('.cartTab').style.display = 'none'; // Hide cart
+   });
+
+   document.getElementById('to-review-btn').addEventListener('click', function() {
+       document.getElementById('pendingSection').style.display = 'none';
+       document.getElementById('to-ship-orders').style.display = 'none';
+       document.getElementById('shipped-orders').style.display = 'none';
+       document.getElementById('to-review').style.display = 'block';
+       document.querySelector('.cartTab').style.display = 'none'; // Hide cart
+   });
+
+   document.getElementById('cart-tab-btn').addEventListener('click', function() {
+       document.querySelector('.cartTab').classList.toggle('active'); // Toggle cart visibility
+       document.getElementById('pendingSection').style.display = 'none';
+       document.getElementById('to-ship-orders').style.display = 'none';
+       document.getElementById('shipped-orders').style.display = 'none';
+       document.getElementById('to-review').style.display = 'none'; // Hide other sections
+   });
+   
+
+       function loadCartFromStorage() {
+       let listCart = JSON.parse(localStorage.getItem("myCart")) || [];
+       const cartContainer = document.querySelector(".listCart");
+       cartContainer.innerHTML = ""; // Clear previous content
+       if (listCart.length === 0) {
+           cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+           return;
+       }
+       listCart.forEach((item, index) => {
+           cartContainer.innerHTML += `
+               <div class="item">
+                   <div class="image"><img src="${item.image}" alt="${item.name}"></div>
+                   <div class="name">${item.name}</div>
+                   <div class="totalPrice">₱ ${(item.price * item.quantity).toFixed(2)}</div>
+                   <div class="quantity">
+                       <span onclick="updateQuantity(${index}, -1)">-</span>
+                       <span>${item.quantity}</span>
+                       <span onclick="updateQuantity(${index}, 1)">+</span>
+                   </div>
+               </div>`;
+       });
+   }
+   
     // Function to update the quantity of items in the cart
     function updateQuantity(index, change) {
         let listCart = JSON.parse(localStorage.getItem("myCart")) || [];
@@ -369,6 +617,144 @@
 
     // Load cart items when the page is loaded
     document.addEventListener("DOMContentLoaded", loadCartFromStorage);
+
+ // Load pending orders from session storage
+    document.addEventListener('DOMContentLoaded', function() {
+        const pendingOrderData = sessionStorage.getItem('pendingOrder');
+        if (pendingOrderData) {
+            const orderDetails = JSON.parse(pendingOrderData);
+            const pendingOrdersList = document.getElementById('pendingOrders');
+            // Loop through products and create list items
+            orderDetails.products.forEach(product => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <div class="image"><img src="${product.image}" alt="${product.name}"></div>
+                    <div class="name">${product.name}</div>
+                    <div class="quantity">Quantity: ${product.quantity}</div>
+                    <div class="price">Price: ₱${product.price}</div>
+                    <div class="total">Total: ₱${(product.price * product.quantity).toFixed(2)}</div>
+                `;
+                pendingOrdersList.appendChild(listItem);
+            });
+            // Clear the stored order after displaying
+            sessionStorage.removeItem('pendingOrder');
+        }
+    });
+    function updateCustomerOrders(orderId, riders) {
+    // Send a request to update the ORDERS.php
+    fetch('../Customer_side/ORDERS.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ orderId: orderId, riders: riders })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Assuming you want to append the rider information to the to-ship-orders div
+            const toShipOrdersDiv = document.getElementById('to-ship-orders');
+            toShipOrdersDiv.innerHTML += `<strong>Will Deliver by:</strong><br>`;
+            riders.forEach(rider => {
+                const riderInfo = document.createElement('div');
+                riderInfo.innerHTML = `
+                    Name: ${rider.first_name} ${rider.last_name}<br>
+                    Number: ${rider.rider_number}<br>
+                `;
+                toShipOrdersDiv.appendChild(riderInfo);
+            });
+            console.log('ORDERS.php updated successfully.');
+        } else {
+            console.error('Error updating ORDERS.php:', data.message);
+        }
+    })
+    .catch(error => console.error('Error updating ORDERS.php:', error));
+}
+   function moveToComplete(orderId) {
+       fetch('../Admin_side/manage_product.php?action=move_to_complete', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({ orderId: orderId })
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.success) {
+               alert('Order moved to Complete!');
+               removeOrderFromToShip(orderId); // Remove from To Ship section
+               addOrderToShipped(orderId); // Add to Shipped section
+               addOrderToReview(orderId); // Add to To Review section
+           } else {
+               alert('Error moving order: ' + data.message);
+           }
+       })
+       .catch(error => {
+           console.error('Error:', error);
+           alert('Something went wrong: ' + error.message);
+       });
+   }
+   
+// Function to remove order from To Ship list
+   function removeOrderFromToShip(orderId) {
+       const toShipOrdersList = document.getElementById('to-ship-orders-list');
+       const rows = toShipOrdersList.getElementsByTagName('li');
+       for (let i = 0; i < rows.length; i++) {
+           const row = rows[i];
+           if (row.dataset.orderId == orderId) {
+               toShipOrdersList.removeChild(row); // Remove the order from the To Ship list
+               break;
+           }
+       }
+   }
+   
+// Function to add order to Shipped list
+   function addOrderToShipped(orderId) {
+       fetch(`../Admin_side/orderDetails.php?id=${orderId}`)
+           .then(response => response.json())
+           .then(order => {
+               if (order.success) {
+                   const shippedOrdersList = document.getElementById('shipped-orders-list'); // Ensure this exists
+                   const newRow = document.createElement('li');
+                   newRow.innerHTML = `
+                       <img src="${order.products[0].image}" alt="Product Image">
+                       <div class="order-details">
+                           <div><strong>${order.products[0].name}</strong></div>
+                           <div>Quantity: ${order.products[0].quantity}</div>
+                           <div>Total Price: ₱${order.total_price}</div>
+                       </div>
+                   `;
+                   shippedOrdersList.appendChild(newRow);
+               } else {
+                   console.error('Order not found:', order.message);
+               }
+           })
+           .catch(error => console.error('Error fetching order details:', error));
+   }
+   function addOrderToReview(orderId) {
+       fetch(`../Admin_side/orderDetails.php?id=${orderId}`)
+           .then(response => response.json())
+           .then(order => {
+               if (order.success) {
+                   const toReviewList = document.getElementById('to-review-list'); // Ensure this exists
+                   const newRow = document.createElement('li');
+                   newRow.innerHTML = `
+                       <img src="${order.products[0].image}" alt="Product Image">
+                       <div class="order-details">
+                           <div><strong>${order.products[0].name}</strong></div>
+                           <div>Quantity: ${order.products[0].quantity}</div>
+                           <div>Total Price: ₱${order.total_price}</div>
+                       </div>
+                   `;
+                   toReviewList.appendChild(newRow);
+               } else {
+                   console.error('Order not found:', order.message);
+               }
+           })
+           .catch(error => console.error('Error fetching order details:', error));
+   }
+   
+   
 </script>
 
     

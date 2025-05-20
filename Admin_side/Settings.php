@@ -1,14 +1,46 @@
-<<?php
-// Start session
+<?php
 session_start();
+include("IPTconnect.php");
+include("IPTfunction.php");
 
-
-include("IPTconnect.php"); 
-include("IPTfunction.php"); 
-
-// Check if user is logged in
 $user_data = check_login($conn);
+
+// Add rider
+if (isset($_POST['add_rider'])) {
+    $number = $_POST['rider_number'];
+    $fname = $_POST['first_name'];
+    $lname = $_POST['last_name'];
+    $stmt = $conn->prepare("INSERT INTO delivery_riders (rider_number, first_name, last_name) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $number, $fname, $lname);
+    $stmt->execute();
+    header("Location: Settings.php");
+    exit();
+}
+
+// Delete rider
+if (isset($_GET['delete'])) {
+    $id = $_GET['delete'];
+    $stmt = $conn->prepare("DELETE FROM delivery_riders WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    header("Location: Settings.php");
+    exit();
+}
+
+// Update rider
+if (isset($_POST['update_rider'])) {
+    $id = $_POST['id'];
+    $number = $_POST['rider_number'];
+    $fname = $_POST['first_name'];
+    $lname = $_POST['last_name'];
+    $stmt = $conn->prepare("UPDATE delivery_riders SET rider_number = ?, first_name = ?, last_name = ? WHERE id = ?");
+    $stmt->bind_param("sssi", $number, $fname, $lname, $id);
+    $stmt->execute();
+    header("Location: Settings.php");
+    exit();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -205,12 +237,69 @@ aside .sidebar .message-count span{
     font-size: 11px;
     border-radius: var(--border-radius-1);
 }
+/* Form container */
+.rider-form {
+    padding: 2rem;
+    background: var(--color-white);
+    border-radius: var(--border-radius-2);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Section headings inside the form */
+.rider-form h2,
+.rider-form h3 {
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+}
+
+/* Form input fields */
+.rider-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.rider-form input[type="text"] {
+    padding: 0.8rem 1rem;
+    border-radius: var(--border-radius-1);
+    border: 1px solid var(--color-info-light);
+    background: var(--color-background);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border 0.3s ease;
+}
+
+.rider-form input[type="text"]:focus {
+    border: 1px solid var(--color-primary);
+    outline: none;
+}
+
+/* Form buttons */
+.rider-form button {
+    padding: 0.8rem 1.5rem;
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius-1);
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    align-self: flex-start;
+}
+
+.rider-form button:hover {
+    background-color: var(--color-primary-variant);
+}
+
+
 </style>
 <body>
 <section class="header1">
     <img src="image\deli.jpg" class="page" alt="Header Image"/>
 </section>
-    <div class="left-side">
+    <div class="container">
     <aside>
             <div class="top">
                 <div class="logo">
@@ -226,11 +315,11 @@ aside .sidebar .message-count span{
                     <span class="material-symbols-sharp">dashboard</span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="Orders.php">
+                <a href="ViewOrders.php">
                     <span class="material-symbols-sharp">receipt_long</span>
                     <h3>Orders</h3>
                 </a>
-                <a href="ViewCustomers.php" class="active">
+                <a href="ViewCustomers.php" >
                     <span class="material-symbols-sharp">groups</span>
                     <h3>View Customers</h3>
                 </a>
@@ -238,21 +327,68 @@ aside .sidebar .message-count span{
                     <span class="material-symbols-sharp">inventory_2</span>
                     <h3>Inventory</h3>
                 </a>
-                <a href="#">
-                    <span class="material-symbols-sharp">mail</span>
-                    <h3>Message</h3>
-                    <span class="message-count">26</span>
-                </a>
-                <a href="#">
+
+                <a href="Settings.php" class="active">
                     <span class="material-symbols-sharp">settings</span>
                     <h3>Settings</h3>
                 </a>
-                <a href="#" class="Logout">
+                <a href="Logout.php" class="Logout">
                     <span class="material-symbols-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>  
             </div>
         </aside>
-    </div>
+    <main class="rider-form">
+        <h2>Delivery Rider Information</h2>
+
+        <!-- Add Rider Form -->
+        <form method="POST" style="margin-bottom: 2rem;">
+            <h3>Add Rider</h3>
+            <input type="text" name="rider_number" placeholder="Rider Number" required>
+            <input type="text" name="first_name" placeholder="First Name" required>
+            <input type="text" name="last_name" placeholder="Last Name" required>
+            <button type="submit" name="add_rider">Add Rider</button>
+        </form>
+
+        <!-- Table -->
+        <table border="1" cellpadding="10" cellspacing="0" style="background:white; width: 100%; border-collapse: collapse;">
+            <thead style="background-color: #7380ec; color: white;">
+                <tr>
+                    <th>Rider Number</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $result = $conn->query("SELECT * FROM delivery_riders");
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>{$row['rider_number']}</td>";
+                    echo "<td>{$row['first_name']}</td>";
+                    echo "<td>{$row['last_name']}</td>";
+                    echo "<td>
+                        <a href='?edit={$row['id']}'>Edit</a> |
+                        <a href='?delete={$row['id']}' onclick=\"return confirm('Are you sure?')\">Delete</a>
+                        </td>";
+                    echo "</tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+
+        <?php if (isset($_GET['edit'])): ?>
+        <form method="POST" style="margin-top: 2rem;">
+            <h3>Edit Rider</h3>
+            <input type="hidden" name="id" value="<?= $edit_row['id'] ?>">
+            <input type="text" name="rider_number" value="<?= $edit_row['rider_number'] ?>" required>
+            <input type="text" name="first_name" value="<?= $edit_row['first_name'] ?>" required>
+            <input type="text" name="last_name" value="<?= $edit_row['last_name'] ?>" required>
+            <button type="submit" name="update_rider">Update Rider</button>
+        </form>
+        <?php endif; ?>
+    </main>
+</div>
 </body>
 </html>

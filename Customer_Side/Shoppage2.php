@@ -1,5 +1,10 @@
 <?php
-include('IPTconnect.php');
+session_start();
+include("IPTconnect.php");
+include("IPTfunction.php");
+
+// Check if user is logged in
+$user_data = check_login($conn);
 
 $searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
 $categoryId = isset($_GET['category']) ? $_GET['category'] : '';
@@ -676,5 +681,9 @@ $result = $stmt->get_result();
     </div>
 
 <script src="IPTcartjava2.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", loadCartFromStorage);
+
+</script>
 </body> 
 </html>

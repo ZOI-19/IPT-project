@@ -294,18 +294,22 @@ function loadCart() {
     if (cart.length === 0) {
         listCart.innerHTML = '<p>Your cart is empty!</p>';
     } else {
-        cart.forEach(item => {
-            subtotal += item.price * item.quantity;
-            listCart.innerHTML += `
-                <div class="item">
-                    <div class="image"><img src="${item.image}" alt="${item.name}"></div>
-                    <div class="name">${item.name}</div>
-                    <div class="totalPrice">₱${(item.price * item.quantity).toFixed(2)}</div>
-                    <div class="quantity">${item.quantity}</div>
-                </div>
-            `;
-        });
-    }
+           cart.forEach(item => {
+       if (item.image && item.name && item.price && item.quantity) {
+           subtotal += item.price * item.quantity;
+           listCart.innerHTML += `
+               <div class="item">
+                   <div class="image"><img src="${item.image}" alt="${item.name}"></div>
+                   <div class="name">${item.name}</div>
+                   <div class="totalPrice">₱${(item.price * item.quantity).toFixed(2)}</div>
+                   <div class="quantity">${item.quantity}</div>
+               </div>
+           `;
+       } else {
+           console.warn('Item is missing properties:', item);
+       }
+   });
+  }
 
     document.getElementById('subtotal').innerHTML = `<strong>Subtotal:</strong> ₱${subtotal.toFixed(2)}`;
 }
@@ -358,8 +362,10 @@ function checkout() {
     .then(data => {
         if (data.success) {
             alert('Checkout Successful!');
-            localStorage.removeItem('myCart'); // Clear cart
-            window.location.href = 'ViewOrders.php'; // Redirect to ViewOrders
+            // Clear the cart from localStorage
+            localStorage.removeItem('myCart');
+            // Redirect to ORDERS.php and pass the order details
+            window.location.href = 'ORDERS.php#Pendin-btn'; // Redirect to Pending section
         } else {
             alert('Checkout failed: ' + data.message);
         }
@@ -376,7 +382,7 @@ function addOrderToPending(orderId) {
     fetch(`../Admin_side/orderDetails.php?id=${orderId}`)
         .then(response => response.json())
         .then(order => {
-            const pendingOrdersTable = document.getElementById('pendingOrders' , '');
+            const pendingOrdersTable = document.getElementById('pendingOrders');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${order.id}</td>
